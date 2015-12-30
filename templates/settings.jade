@@ -1,0 +1,20 @@
+include ./partials/__header.jade
+include ./partials/__navbar.jade
+include ./partials/__jumbotron.jade
+    form#changeinfoform
+      label
+        | Name
+        br
+        input(type='text', name='name')
+      br
+      label
+        | Email
+        br
+        input(type='text', name='email')
+      br
+      label
+        | Password
+        br
+        input(type='password', name='password')
+      br
+      input(type='submit', value='Sign Up')
