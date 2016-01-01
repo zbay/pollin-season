@@ -1,5 +1,14 @@
 'use strict';
 
+var mongoose = require('mongoose');
+var User = require("./dbmodels/user.js");
+var PollCollection = require("./dbmodels/poll_collection.js");
+var db = mongoose.connection;
+  // Create your schemas and models here.
+
+var User = mongoose.model("User");
+var PollCollection = mongoose.model("PollCollection");
+
 var express = require('express');
 var app = express();
 var mongo = require('mongodb');
@@ -13,7 +22,7 @@ var sessionName = "";
 var successMessage = "";
 var errorMessage = "";
 
-mongo.connect('mongodb://localhost:27017/votingapp', function (err, db) 
+mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db) 
 {
  if (err) {
       throw new Error('Database failed to connect!');
@@ -26,8 +35,8 @@ app.use(bodyParser());
 
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/templates');
-var users = db.collection("users");
-var polls = db.collection("polls");
+//var users = db.collection("users");
+//var polls = db.collection("polls");
 
 /*app.get('*', function(req, res){
   res.send('Page not found', 404);
@@ -56,11 +65,11 @@ app.get('/login', function(req, res){
 app.post('/login', function(req, res){
   var email = req.body.email;
   var password = req.body.password;
-  users.findOne({"email": email, "password": password}, function(err, doc){
+  db.Users.findOne({"email": email, "password": password}, function(err, doc){
   	if(doc && !err){
   		isLoggedIn = true;
   		sessionEmail = email;
-  		sessionName = users.findOne({"email": email}).name;
+  		sessionName = db.Users.findOne({"email": email}).name;
   		res.redirect("/dashboard");
   	}
     else{
@@ -99,8 +108,12 @@ else{
   var emailRegex = /@/;
   
   if(name && email && password && name.length > 2 && email.match(emailRegex) && password.length > 6){
-   users.insert({"name":name, "email":email, "password":password});	
-   polls.insert({"email": email, "polls": []});
+   var newUser = new User({"name": name, "email":email, "password":password}); 
+   newUser.save();
+   var newPollCollection = new PollCollection({"email": email, "polls": []});
+   newPollCollection.save();
+   //users.insert({"name":name, "email":email, "password":password});	
+   //polls.insert({"email": email, "polls": []});
    successMessage = "Account successfully created!";
    errorMessage = "";
    console.log("Inserting data");
@@ -134,9 +147,9 @@ app.post("/settings", function(req, res){
 		var currentPassword = req.params.currentPassword;
 		var newPassword = req.params.newPassword;
 		var currentPasswordExists = false;
-		db.userlist.findOne({"password": currentPassword}, function(err, doc){
+		db.Users.findOne({"password": currentPassword}, function(err, doc){
   	if(doc && !err && newPassword.length > 6){
-  		users.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword}});
+  		db.Users.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword}});
   		//display success message
   		successMessage = "Password successfully changed!";
   		errorMessage = "";
@@ -157,7 +170,7 @@ app.get("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var pollNames = polls.find({"email": sessionEmail}); //FIX THIS
+		var pollNames = db.PollCollections.find({"email": sessionEmail}); //FIX THIS
 		//console.log(pollNames);
 		res.render("dashboard");
 	}
@@ -177,7 +190,7 @@ app.post("/dashboard", function(req, res){
 	}
 
 	if(pollName.length > 1 && options.length > 1){
-		polls.update({"email": sessionEmail }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, true, function(err, data){
+		db.PollCollections.update({"email": sessionEmail }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, true, function(err, data){
 			if(err){
 			 console.log(err);	
 			}
@@ -202,7 +215,7 @@ app.delete("/dashboard", function(req, res){
 	}
 	else{
 		var pollName = req.params.pollName;
-		polls.remove({"title":pollName});
+		db.PollCollections.remove({"title":pollName});
 		successMessage = "Poll removed.";
 		errorMessage = "";
 		res.render("dashboard");
@@ -215,7 +228,7 @@ app.get("/polls/:name", function(req, res){
 	}
 	else{
 		var pollName = req.params.name;
-		var thePoll = polls.findOne({"email": sessionEmail, "polls.title": pollName});
+		var thePoll = db.pollCollections.findOne({"email": sessionEmail, "polls.title": pollName});
 		var thePollOptions = thePoll.polls.options;
 		res.render("poll");
 	}
@@ -228,7 +241,7 @@ app.post("/polls/:name", function(req, res){
 	else{
 		var name = req.params.name;
 		var optionName = req.params.optionName;
-		var userToIncrement = polls.findOne({"email": sessionEmail});
+		var userToIncrement = db.pollCollections.findOne({"email": sessionEmail});
 		var pollToIncrement = userToIncrement.findOne({"polls.title": name});
 		pollToIncrement.update({"options.text": optionName}, {$inc: {"frequency": 1}});
 		successMessage = "Vote cast!";
