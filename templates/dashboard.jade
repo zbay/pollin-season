@@ -12,22 +12,25 @@ form#newPollForm(method="POST")
   label#optionList
     | Options
     br
-    input.option(type='text', name='options[]', placeholder='Red')
+    input.option(type='text', name='options[0]', placeholder='Red')
     br
-    input.option(type='text', name='options[]', placeholder='Blue')
+    input.option(type='text', name='options[1]', placeholder='Blue')
   br
-  button#addOption More Options
+  button#addOption Add an Option
   br
   input(type='submit', value='Save New Poll')
-div#oldPolls(style='display:none;')
+//div#oldPolls(style='display:none;')
   ul
-    each pollName in #{pollNames}
+    each title in pollNames
       li 
-        //a(href="")pollName) pollName 12/30: figure out how to do for loop of poll names with links
-        button.deleteButton Delete
+        a(href="/polls/"+title)= title
+        button.deleteButton(name=title) Delete
 script.
+    var optionsLength = 2;
     $("#addOption").on("click", function(){
-    var input = $("<br /><input type='text' name='options[]' class='option'/>");
+    console.log(optionsLength);
+    var input = $("<br /><input type='text' name='options[" + optionsLength + "] class='option'/>");
+    optionsLength++;
     $("#optionList").append(input);
     return false;
     });

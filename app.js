@@ -27,6 +27,7 @@ app.use(bodyParser());
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/templates');
 var users = db.collection("users");
+var polls = db.collection("polls");
 
 /*app.get('*', function(req, res){
   res.send('Page not found', 404);
@@ -99,6 +100,7 @@ else{
   
   if(name && email && password && name.length > 2 && email.match(emailRegex) && password.length > 6){
    users.insert({"name":name, "email":email, "password":password});	
+   polls.insert({"email": email, "polls": []});
    successMessage = "Account successfully created!";
    errorMessage = "";
    console.log("Inserting data");
@@ -155,7 +157,8 @@ app.get("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var pollNames = users.find({}, {"names": 1, "__id": 0});
+		var pollNames = polls.find({"email": sessionEmail}); //FIX THIS
+		//console.log(pollNames);
 		res.render("dashboard");
 	}
 });
@@ -168,12 +171,17 @@ app.post("/dashboard", function(req, res){
 	var pollName = req.body.pollName;
 	var options = req.body.options;
 	var optionsWithTallies = [];
-	for(var i = 0; i < options; i++){
+	for(var i = 0; i < options.length; i++){
 		var appendThis = {"text": options[i], "votes": 0};
 		optionsWithTallies.push(appendThis);
 	}
+
 	if(pollName.length > 1 && options.length > 1){
-		users.update({"email": sessionEmail }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, true);
+		polls.update({"email": sessionEmail }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, true, function(err, data){
+			if(err){
+			 console.log(err);	
+			}
+		});
 		successMessage = "Poll created.";
 		errorMessage = "";
 		res.render("dashboard");
@@ -193,8 +201,8 @@ app.delete("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var pollName = req.params.pollName; //How to get this parameter?
-		db.polls.remove({"pollName":pollName});
+		var pollName = req.params.pollName;
+		polls.remove({"title":pollName});
 		successMessage = "Poll removed.";
 		errorMessage = "";
 		res.render("dashboard");
@@ -207,7 +215,7 @@ app.get("/polls/:name", function(req, res){
 	}
 	else{
 		var pollName = req.params.name;
-		var thePoll = db.users.findOne({"email": sessionEmail, "polls.title": pollName});
+		var thePoll = polls.findOne({"email": sessionEmail, "polls.title": pollName});
 		var thePollOptions = thePoll.polls.options;
 		res.render("poll");
 	}
@@ -220,7 +228,9 @@ app.post("/polls/:name", function(req, res){
 	else{
 		var name = req.params.name;
 		var optionName = req.params.optionName;
-		//add mongo shit
+		var userToIncrement = polls.findOne({"email": sessionEmail});
+		var pollToIncrement = userToIncrement.findOne({"polls.title": name});
+		pollToIncrement.update({"options.text": optionName}, {$inc: {"frequency": 1}});
 		successMessage = "Vote cast!";
 		errorMessage = "";
 		res.render("poll");
