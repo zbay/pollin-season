@@ -1,19 +1,21 @@
-nav.navbar.navbar-default
-  div.container-fluid
-    div.navbar-header
-      a.navbar-brand(href='./') Pollin' Season
-    ul.nav.navbar-nav.navbar-left
-      li.active
-        a(href='./') Home
-    ul.nav.navbar-nav.navbar-right
-      if isLoggedIn
-        li Hello, sessionName
-        li  
-          a(href='./settings') Settings
-        li
-          a(href='./logout') Sign Out
-      else
-        li
-          a(href='./signup') Sign Up
-        li
-          a(href='./login') Log In
+mixin navigation(loggedIn, seshName)
+  nav.navbar.navbar-default
+    div.container-fluid
+      div.navbar-header
+        a.navbar-brand(href='./') Pollin' Season
+      ul.nav.navbar-nav.navbar-left
+        li.active
+          a(href='./') Home
+      ul.nav.navbar-nav.navbar-right
+        if loggedIn
+          li
+            a(href='#') Hello, #{seshName}
+          li  
+            a(href='./settings') Settings
+          li
+            a(href='./logout') Sign Out
+        else
+          li
+            a(href='./signup') Sign Up
+          li
+            a(href='./login') Log In

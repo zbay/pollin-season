@@ -1,5 +1,6 @@
 'use strict';
 
+// 1/2/16: Feed params{} to render templates
 var mongoose = require('mongoose');
 var User = require("./dbmodels/user.js");
 var PollCollection = require("./dbmodels/poll_collection.js");
@@ -47,13 +48,13 @@ app.get('/', function(req, res){
 		res.redirect("/dashboard");
 	}
 	else{
-		res.render('index');	
+		res.render('index', {seshName: sessionName, loggedIn: isLoggedIn});	
 	}
 });
 
 app.get('/login', function(req, res){
 	if(!isLoggedIn){
-		res.render('login');
+		res.render('login', {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 	else{
 		res.redirect("/dashboard");
@@ -67,14 +68,15 @@ app.post('/login', function(req, res){
   	if(doc && !err){
   		isLoggedIn = true;
   		sessionEmail = email;
-  		sessionName = User.findOne({"email": email}).name;
-  		res.redirect("/dashboard");
+  		var sessionNameQuery = User.findOne({"email": email}).lean().exec(function(err, data){
+  			sessionName = data.name;
+  			res.redirect("/dashboard");
+  		});
   	}
     else{
-    	//Display error message
     	errorMessage = "Incorrect email or password. Try again.";
     	successMessage = "";
-    	res.render("login");
+    	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn});
     }
   });
 });
@@ -83,12 +85,12 @@ app.get('/logout', function(req, res){
 	isLoggedIn = false;
 	sessionEmail = "";
 	sessionName = "";
-	res.redirect("/index");
+	res.redirect("/index", {seshName: sessionName, loggedIn: isLoggedIn});
 });
 
 app.get("/signup", function(req, res){
 	if(!isLoggedIn){
-		res.render('signup');
+		res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 	else{
 		res.redirect("/dashboard");
@@ -118,7 +120,7 @@ else{
   	//add error mesage
   	errorMessage = "Invalid information. Enter a valid email, a name longer than 2 characters, and a password longer than 6 characters.";
   	successMessage = "";
-  	res.render('signup');
+  	res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn});
   }
 }
 
@@ -129,7 +131,7 @@ app.get("/settings", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		res.render("settings");
+		res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
 
@@ -147,13 +149,13 @@ app.post("/settings", function(req, res){
   		//display success message
   		successMessage = "Password successfully changed!";
   		errorMessage = "";
-  		res.render("settings");
+  		res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn});
   	}
     else{
     	//Display error message
     	errorMessage = "There was an error when changing your password. Make sure it's at least 7 characters in length.";
     	successMessage = "";
-    	res.render("settings");
+    	res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn});
     }
   });
 	}
@@ -172,7 +174,7 @@ app.get("/dashboard", function(req, res){
 			}
 			//console.log(pollNames);
 		});
-		res.render("dashboard");
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
 
@@ -197,13 +199,13 @@ app.post("/dashboard", function(req, res){
 		});
 		successMessage = "Poll created.";
 		errorMessage = "";
-		res.render("dashboard");
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 	else{
 		//display error message
 		errorMessage = "You submitted a poll title of inadequate length, or a quiz with an insufficient number of options. Try again.";
 		successMessage = "";
-		res.render("dashboard");
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 	}
 	
@@ -218,7 +220,7 @@ app.delete("/dashboard", function(req, res){
 		PollCollection.remove({"title":pollName});
 		successMessage = "Poll removed.";
 		errorMessage = "";
-		res.render("dashboard");
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
 
@@ -230,7 +232,7 @@ app.get("/polls/:name", function(req, res){
 		var pollName = req.params.name;
 		var thePoll = PollCollection.findOne({"email": sessionEmail, "polls.title": pollName});
 		var thePollOptions = thePoll.polls.options;
-		res.render("poll");
+		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
 
@@ -246,7 +248,7 @@ app.post("/polls/:name", function(req, res){
 		pollToIncrement.update({"options.text": optionName}, {$inc: {"frequency": 1}});
 		successMessage = "Vote cast!";
 		errorMessage = "";
-		res.render("poll");
+		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
 
