@@ -22,7 +22,7 @@ var sessionName = "";
 var successMessage = "";
 var errorMessage = "";
 
-mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db) 
+mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
 {
  if (err) {
       throw new Error('Database failed to connect!');
@@ -35,8 +35,6 @@ app.use(bodyParser());
 
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/templates');
-//var users = db.collection("users");
-//var polls = db.collection("polls");
 
 /*app.get('*', function(req, res){
   res.send('Page not found', 404);
@@ -65,11 +63,11 @@ app.get('/login', function(req, res){
 app.post('/login', function(req, res){
   var email = req.body.email;
   var password = req.body.password;
-  db.Users.findOne({"email": email, "password": password}, function(err, doc){
+  User.findOne({"email": email, "password": password}, function(err, doc){
   	if(doc && !err){
   		isLoggedIn = true;
   		sessionEmail = email;
-  		sessionName = db.Users.findOne({"email": email}).name;
+  		sessionName = User.findOne({"email": email}).name;
   		res.redirect("/dashboard");
   	}
     else{
@@ -112,18 +110,14 @@ else{
    newUser.save();
    var newPollCollection = new PollCollection({"email": email, "polls": []});
    newPollCollection.save();
-   //users.insert({"name":name, "email":email, "password":password});	
-   //polls.insert({"email": email, "polls": []});
    successMessage = "Account successfully created!";
    errorMessage = "";
-   console.log("Inserting data");
-   res.render("login");
+   res.redirect("/login");
   }
   else{
   	//add error mesage
   	errorMessage = "Invalid information. Enter a valid email, a name longer than 2 characters, and a password longer than 6 characters.";
   	successMessage = "";
-  	console.log("Not inserting data");
   	res.render('signup');
   }
 }
@@ -147,9 +141,9 @@ app.post("/settings", function(req, res){
 		var currentPassword = req.params.currentPassword;
 		var newPassword = req.params.newPassword;
 		var currentPasswordExists = false;
-		db.Users.findOne({"password": currentPassword}, function(err, doc){
+		User.findOne({"password": currentPassword}, function(err, doc){
   	if(doc && !err && newPassword.length > 6){
-  		db.Users.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword}});
+  		User.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword}});
   		//display success message
   		successMessage = "Password successfully changed!";
   		errorMessage = "";
@@ -170,8 +164,14 @@ app.get("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var pollNames = db.PollCollections.find({"email": sessionEmail}); //FIX THIS
-		//console.log(pollNames);
+		var pollNames = [];
+		var pollNamesQuery = PollCollection.find({"email": sessionEmail}, {"polls.title": 1, "_id": 0}).lean().exec(function(err, doc){
+			//console.log(doc[0].polls);
+			for(var i = 0; i < doc[0].polls.length; i++){
+				pollNames.push(doc[0].polls[i].title);
+			}
+			//console.log(pollNames);
+		});
 		res.render("dashboard");
 	}
 });
@@ -190,7 +190,7 @@ app.post("/dashboard", function(req, res){
 	}
 
 	if(pollName.length > 1 && options.length > 1){
-		db.PollCollections.update({"email": sessionEmail }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, true, function(err, data){
+		PollCollection.update({"email": sessionEmail }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, function(err, data){
 			if(err){
 			 console.log(err);	
 			}
@@ -215,7 +215,7 @@ app.delete("/dashboard", function(req, res){
 	}
 	else{
 		var pollName = req.params.pollName;
-		db.PollCollections.remove({"title":pollName});
+		PollCollection.remove({"title":pollName});
 		successMessage = "Poll removed.";
 		errorMessage = "";
 		res.render("dashboard");
@@ -228,7 +228,7 @@ app.get("/polls/:name", function(req, res){
 	}
 	else{
 		var pollName = req.params.name;
-		var thePoll = db.pollCollections.findOne({"email": sessionEmail, "polls.title": pollName});
+		var thePoll = PollCollection.findOne({"email": sessionEmail, "polls.title": pollName});
 		var thePollOptions = thePoll.polls.options;
 		res.render("poll");
 	}
@@ -241,7 +241,7 @@ app.post("/polls/:name", function(req, res){
 	else{
 		var name = req.params.name;
 		var optionName = req.params.optionName;
-		var userToIncrement = db.pollCollections.findOne({"email": sessionEmail});
+		var userToIncrement = PollCollection.findOne({"email": sessionEmail});
 		var pollToIncrement = userToIncrement.findOne({"polls.title": name});
 		pollToIncrement.update({"options.text": optionName}, {$inc: {"frequency": 1}});
 		successMessage = "Vote cast!";
@@ -256,5 +256,3 @@ app.listen(8080, function() {
 });
 }
 });
-
-//12/29: iron out dashboard rendering, then try to run the dumb thing

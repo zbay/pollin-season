@@ -1,4 +1,8 @@
 var mongoose = require('mongoose');
-var PollCollectionSchema = new mongoose.schema({"email": String, "polls": [{"title": String, "options": [String]}]});
+var Schema = mongoose.Schema;
+var PollCollectionSchema = new Schema
+({"email": String, 
+    "polls":[{"title": String, 
+        "options": [{"text": String, "frequency": Number}]}]});
   
 mongoose.model('PollCollection', PollCollectionSchema);
