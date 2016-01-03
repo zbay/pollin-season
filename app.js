@@ -68,9 +68,11 @@ app.post('/login', function(req, res){
   	if(doc && !err){
   		isLoggedIn = true;
   		sessionEmail = email;
-  		var sessionNameQuery = User.findOne({"email": email}).lean().exec(function(err, data){
+  		User.findOne({"email": email}).lean().exec(function(err, data){
+  			if(!err){
   			sessionName = data.name;
   			res.redirect("/dashboard");
+  			}
   		});
   	}
     else{
@@ -85,7 +87,7 @@ app.get('/logout', function(req, res){
 	isLoggedIn = false;
 	sessionEmail = "";
 	sessionName = "";
-	res.redirect("/index", {seshName: sessionName, loggedIn: isLoggedIn});
+	res.redirect("/");
 });
 
 app.get("/signup", function(req, res){
@@ -110,11 +112,17 @@ else{
   if(name && email && password && name.length > 2 && email.match(emailRegex) && password.length > 6){
    var newUser = new User({"name": name, "email":email, "password":password}); 
    newUser.save();
-   var newPollCollection = new PollCollection({"email": email, "polls": []});
+   var userID;
+   User.findOne({"email": email}).lean().exec(function(err, data){
+   	if(!err){
+   	userID = data._id;	
+   	var newPollCollection = new PollCollection({"userID": userID, "polls": []});
    newPollCollection.save();
    successMessage = "Account successfully created!";
    errorMessage = "";
    res.redirect("/login");
+   	}
+   });
   }
   else{
   	//add error mesage
@@ -140,22 +148,31 @@ app.post("/settings", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var currentPassword = req.params.currentPassword;
-		var newPassword = req.params.newPassword;
-		var currentPasswordExists = false;
-		User.findOne({"password": currentPassword}, function(err, doc){
+		var newName = req.body.name;
+		var newEmail = req.body.email;
+		var currentPassword = req.body.currentPassword;
+		var newPassword = req.body.newPassword;
+		
+		/*var updateQuery = User.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword, "name": newName, "email": newEmail}}).lean().exec(function(err, doc){
+			console.log(doc);
+		});*/
+		User.findOne({"email": sessionEmail, "password": currentPassword}).lean().exec(function(err, doc){
   	if(doc && !err && newPassword.length > 6){
-  		User.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword}});
-  		//display success message
-  		successMessage = "Password successfully changed!";
-  		errorMessage = "";
-  		res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn});
+  		var userID = doc._id;
+  		User.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword, "name": newName, "email": newEmail}}, function(err, data){
+  			if(!err){
+  					sessionEmail = newEmail;
+  					sessionName = newName;
+  					successMessage = "Info successfully changed!";
+  					errorMessage = "";
+  					res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, success: successMessage, error: errorMessage});
+  			}
+  		});
   	}
     else{
-    	//Display error message
     	errorMessage = "There was an error when changing your password. Make sure it's at least 7 characters in length.";
     	successMessage = "";
-    	res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn});
+    	res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, success: successMessage, error: errorMessage});
     }
   });
 	}
@@ -169,10 +186,11 @@ app.get("/dashboard", function(req, res){
 		var pollNames = [];
 		var pollNamesQuery = PollCollection.find({"email": sessionEmail}, {"polls.title": 1, "_id": 0}).lean().exec(function(err, doc){
 			//console.log(doc[0].polls);
+			if(!err && doc.length){
 			for(var i = 0; i < doc[0].polls.length; i++){
 				pollNames.push(doc[0].polls[i].title);
+			}	
 			}
-			//console.log(pollNames);
 		});
 		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
@@ -186,13 +204,17 @@ app.post("/dashboard", function(req, res){
 	var pollName = req.body.pollName;
 	var options = req.body.options;
 	var optionsWithTallies = [];
+	var userID;
 	for(var i = 0; i < options.length; i++){
 		var appendThis = {"text": options[i], "votes": 0};
 		optionsWithTallies.push(appendThis);
 	}
 
 	if(pollName.length > 1 && options.length > 1){
-		PollCollection.update({"email": sessionEmail }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, function(err, data){
+	   User.findOne({"email": sessionEmail}).lean().exec(function(err, data){
+   		if(!err){
+   			userID = data._id;	
+   			PollCollection.update({"userID": userID }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, function(err, data){
 			if(err){
 			 console.log(err);	
 			}
@@ -200,6 +222,8 @@ app.post("/dashboard", function(req, res){
 		successMessage = "Poll created.";
 		errorMessage = "";
 		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
+   		}
+   });
 	}
 	else{
 		//display error message
