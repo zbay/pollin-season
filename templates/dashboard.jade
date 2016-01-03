@@ -20,12 +20,13 @@ form#newPollForm(method="POST")
   button#addOption Add an Option
   br
   input(type='submit', value='Save New Poll')
-//div#oldPolls(style='display:none;')
+div#oldPolls(style='display:none;')
   ul
-    each title in pollNames
+    for title in pollTitles
       li 
         a(href="/polls/"+title)= title
         button.deleteButton(name=title) Delete
+        br
 script.
     var optionsLength = 2;
     $("#addOption").on("click", function(){

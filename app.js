@@ -20,8 +20,10 @@ var app = express();
 var isLoggedIn = false;
 var sessionEmail = "";
 var sessionName = "";
+var sessionID;
 var successMessage = "";
 var errorMessage = "";
+var pollNames = [];
 
 mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
 {
@@ -68,6 +70,7 @@ app.post('/login', function(req, res){
   	if(doc && !err){
   		isLoggedIn = true;
   		sessionEmail = email;
+  		sessionID = doc._id;
   		User.findOne({"email": email}).lean().exec(function(err, data){
   			if(!err){
   			sessionName = data.name;
@@ -87,6 +90,7 @@ app.get('/logout', function(req, res){
 	isLoggedIn = false;
 	sessionEmail = "";
 	sessionName = "";
+	sessionID = null;
 	res.redirect("/");
 });
 
@@ -114,9 +118,9 @@ else{
    newUser.save();
    var userID;
    User.findOne({"email": email}).lean().exec(function(err, data){
-   	if(!err){
-   	userID = data._id;	
-   	var newPollCollection = new PollCollection({"userID": userID, "polls": []});
+   if(!err){
+   userID = data._id;	
+   var newPollCollection = new PollCollection({"userID": userID, "polls": []});
    newPollCollection.save();
    successMessage = "Account successfully created!";
    errorMessage = "";
@@ -183,16 +187,18 @@ app.get("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var pollNames = [];
-		var pollNamesQuery = PollCollection.find({"email": sessionEmail}, {"polls.title": 1, "_id": 0}).lean().exec(function(err, doc){
+		pollNames = [];
+		PollCollection.find({"userID": sessionID}, {"polls.title": 1, "_id": 0}).lean().exec(function(err, doc){
 			//console.log(doc[0].polls);
 			if(!err && doc.length){
 			for(var i = 0; i < doc[0].polls.length; i++){
 				pollNames.push(doc[0].polls[i].title);
-			}	
+				// /console.log(pollNames);
+			}
+			console.log(pollNames);
+			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
 			}
 		});
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
 
@@ -218,10 +224,13 @@ app.post("/dashboard", function(req, res){
 			if(err){
 			 console.log(err);	
 			}
+			else{
+				pollNames.push(pollName);
+			}
 		});
 		successMessage = "Poll created.";
 		errorMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
    		}
    });
 	}
