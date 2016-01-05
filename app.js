@@ -34,7 +34,9 @@ mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
       
 app.use('/static', express.static(__dirname + '/public'));
 app.use(bodyParser.json());
-app.use(bodyParser());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/templates');
@@ -70,18 +72,14 @@ app.post('/login', function(req, res){
   	if(doc && !err){
   		isLoggedIn = true;
   		sessionEmail = email;
+  		sessionName = doc.name;
   		sessionID = doc._id;
-  		User.findOne({"email": email}).lean().exec(function(err, data){
-  			if(!err){
-  			sessionName = data.name;
-  			res.redirect("/dashboard");
-  			}
-  		});
+  		res.redirect("/dashboard");
   	}
     else{
     	errorMessage = "Incorrect email or password. Try again.";
     	successMessage = "";
-    	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn});
+    	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage, success: successMessage});
     }
   });
 });
@@ -185,18 +183,20 @@ app.post("/settings", function(req, res){
 app.get("/dashboard", function(req, res){
 	if(!isLoggedIn){
 		res.redirect("/");
+		console.log("Not rendering dash");
 	}
 	else{
 		pollNames = [];
 		PollCollection.find({"userID": sessionID}, {"polls.title": 1, "_id": 0}).lean().exec(function(err, doc){
-			//console.log(doc[0].polls);
 			if(!err && doc.length){
 			for(var i = 0; i < doc[0].polls.length; i++){
 				pollNames.push(doc[0].polls[i].title);
-				// /console.log(pollNames);
+				console.log("Rendering dash?  " + doc);
 			}
-			console.log(pollNames);
 			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
+			}
+			else{
+				res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
 			}
 		});
 	}
@@ -249,11 +249,19 @@ app.delete("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var pollName = req.params.pollName;
-		PollCollection.remove({"title":pollName});
+		var pollName = req.body.pollName;
+		console.log(pollName);
+		PollCollection.remove({"title":pollName}, function(err, data){
+		if(err){
+			console.log("Not deleting?");
+		}
+		console.log("Deleting?");
+		var nameIndex = pollNames.indexOf(pollName);
+		pollNames.splice(nameIndex, 1);
 		successMessage = "Poll removed.";
 		errorMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
+		});
 	}
 });
 

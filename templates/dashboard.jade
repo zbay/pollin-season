@@ -23,14 +23,13 @@ form#newPollForm(method="POST")
 div#oldPolls(style='display:none;')
   ul
     for title in pollTitles
-      li 
+      li
         a(href="/polls/"+title)= title
-        button.deleteButton(name=title) Delete
-        br
+        button.deletePollButton(name=title) Delete
+      br
 script.
     var optionsLength = 2;
     $("#addOption").on("click", function(){
-    console.log(optionsLength);
     var input = $("<br /><input type='text' name='options[" + optionsLength + "] class='option'/>");
     optionsLength++;
     $("#optionList").append(input);
@@ -45,5 +44,20 @@ script.
       $("#newPollForm").attr("style", "display:none");
       $("#oldPolls").attr("style", "display:block");
     });
+    
+    $(".deletePollButton").on("click", function(){
+    var postTitle = $(this).attr("name");
+      //SEND DELETE AJAX REQUEST
+      $.ajax({
+      method: "DELETE",
+      url: "/dashboard",
+      data: {deleteName: postTitle} 
+      }).done(function() {
+        $( this ).parent.remove();
+        });
+      });
+    
+    
+    
 include ./partials/__error.jade
 include ./partials/__success.jade
