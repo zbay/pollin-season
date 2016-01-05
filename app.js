@@ -113,7 +113,7 @@ else{
   
   if(name && email && password && name.length > 2 && email.match(emailRegex) && password.length > 6){
    var newUser = new User({"name": name, "email":email, "password":password}); 
-   newUser.save();
+   newUser.save(function(){
    var userID;
    User.findOne({"email": email}).lean().exec(function(err, data){
    if(!err){
@@ -125,12 +125,14 @@ else{
    res.redirect("/login");
    	}
    });
+   });
+
   }
   else{
   	//add error mesage
   	errorMessage = "Invalid information. Enter a valid email, a name longer than 2 characters, and a password longer than 6 characters.";
   	successMessage = "";
-  	res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn});
+  	res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
   }
 }
 
@@ -167,7 +169,7 @@ app.post("/settings", function(req, res){
   					sessionName = newName;
   					successMessage = "Info successfully changed!";
   					errorMessage = "";
-  					res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, success: successMessage, error: errorMessage});
+  					res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, success: successMessage});
   			}
   		});
   	}
@@ -183,7 +185,6 @@ app.post("/settings", function(req, res){
 app.get("/dashboard", function(req, res){
 	if(!isLoggedIn){
 		res.redirect("/");
-		console.log("Not rendering dash");
 	}
 	else{
 		pollNames = [];
@@ -191,7 +192,6 @@ app.get("/dashboard", function(req, res){
 			if(!err && doc.length){
 			for(var i = 0; i < doc[0].polls.length; i++){
 				pollNames.push(doc[0].polls[i].title);
-				console.log("Rendering dash?  " + doc);
 			}
 			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
 			}
@@ -230,7 +230,7 @@ app.post("/dashboard", function(req, res){
 		});
 		successMessage = "Poll created.";
 		errorMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames, success: successMessage});
    		}
    });
 	}
@@ -238,7 +238,7 @@ app.post("/dashboard", function(req, res){
 		//display error message
 		errorMessage = "You submitted a poll title of inadequate length, or a quiz with an insufficient number of options. Try again.";
 		successMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn});
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
 	}
 	}
 	
@@ -249,21 +249,16 @@ app.delete("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var pollName = req.body.pollName;
-		console.log(pollName);
-		PollCollection.remove({"title":pollName}, function(err, data){
-		if(err){
-			console.log("Not deleting?");
-		}
-		console.log("Deleting?");
-		var nameIndex = pollNames.indexOf(pollName);
+		var deleteName = req.body.deleteName;
+		PollCollection.update({"userID": sessionID}, {$pull: {"polls": {"title": deleteName}}}, function(err, data) {
+		var nameIndex = pollNames.indexOf(deleteName);
 		pollNames.splice(nameIndex, 1);
 		successMessage = "Poll removed.";
 		errorMessage = "";
 		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
 		});
-	}
-});
+		}
+	});
 
 app.get("/polls/:name", function(req, res){
 	if(!isLoggedIn){
