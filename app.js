@@ -14,7 +14,7 @@ var express = require('express');
 var app = express();
 var mongo = require('mongodb');
 var bodyParser = require('body-parser');
-var crypto = require('crypto');
+var bcrypt = require('bcrypt');
 
 var app = express();
 var isLoggedIn = false;
@@ -68,13 +68,22 @@ app.get('/login', function(req, res){
 app.post('/login', function(req, res){
   var email = req.body.email;
   var password = req.body.password;
-  User.findOne({"email": email, "password": password}, function(err, doc){
-  	if(doc && !err){
+  User.findOne({"email": email}, function(err, doc){
+  	//console.log(password + " database: " + doc.password + "hash: " + bcrypt.hashSync(password, 10));
+  	if(!err && doc != null){
+  		var hashedPassword = doc.password;
+  		if(bcrypt.compareSync(password, hashedPassword)){
   		isLoggedIn = true;
   		sessionEmail = email;
   		sessionName = doc.name;
   		sessionID = doc._id;
   		res.redirect("/dashboard");
+  		}
+  		else{
+    	errorMessage = "Incorrect email or password. Try again.";
+    	successMessage = "";
+    	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage, success: successMessage});
+    }
   	}
     else{
     	errorMessage = "Incorrect email or password. Try again.";
@@ -109,10 +118,11 @@ else{
   var name = req.body.name;
   var email = req.body.email;
   var password = req.body.password;
+  var hashedPassword = bcrypt.hashSync(password, 10);
   var emailRegex = /@/;
   
   if(name && email && password && name.length > 2 && email.match(emailRegex) && password.length > 6){
-   var newUser = new User({"name": name, "email":email, "password":password}); 
+   var newUser = new User({"name": name, "email":email, "password": hashedPassword}); 
    newUser.save(function(){
    var userID;
    User.findOne({"email": email}).lean().exec(function(err, data){
@@ -157,13 +167,11 @@ app.post("/settings", function(req, res){
 		var currentPassword = req.body.currentPassword;
 		var newPassword = req.body.newPassword;
 		
-		/*var updateQuery = User.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword, "name": newName, "email": newEmail}}).lean().exec(function(err, doc){
-			console.log(doc);
-		});*/
-		User.findOne({"email": sessionEmail, "password": currentPassword}).lean().exec(function(err, doc){
-  	if(doc && !err && newPassword.length > 6){
+		User.findOne({"email": sessionEmail}).lean().exec(function(err, doc){
+			var hashedPassword = doc.password;
+  	if(doc && !err && newPassword.length > 6 && bcrypt.compareSync(currentPassword, hashedPassword)){
   		var userID = doc._id;
-  		User.update({"email": sessionEmail, "password": currentPassword}, {"$set": {"password":newPassword, "name": newName, "email": newEmail}}, function(err, data){
+  		User.update({"email": sessionEmail}, {"$set": {"password": bcrypt.hashSync(newPassword, 10), "name": newName, "email": newEmail}}, function(err, data){
   			if(!err){
   					sessionEmail = newEmail;
   					sessionName = newName;
