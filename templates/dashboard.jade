@@ -22,11 +22,12 @@ form#newPollForm(method="POST")
   input(type='submit', value='Save New Poll')
 div#oldPolls(style='display:none;')
   ul
-    for title in pollTitles
-      li
-        a(href="/polls/"+title)= title
-        button.deletePollButton(name=title) Delete
-      br
+  if pollTitles
+      for title in pollTitles
+        li
+          a(href="/polls/"+title)= title
+          button.deletePollButton(name=title) Delete
+        br
 script.
     var optionsLength = 2;
     $("#addOption").on("click", function(){
@@ -57,5 +58,9 @@ script.
         });
       });
     
-include ./partials/__error.jade
-include ./partials/__success.jade
+if error
+  include ./partials/__error.jade
+  mixin errorDisplay(error)
+if success
+  include ./partials/__success.jade
+  mixin successDisplay(success)

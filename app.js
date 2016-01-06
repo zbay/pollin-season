@@ -18,11 +18,11 @@ var bcrypt = require('bcrypt');
 
 var app = express();
 var isLoggedIn = false;
+var errorMessage = "";
+var successMessage = "";
 var sessionEmail = "";
 var sessionName = "";
 var sessionID;
-var successMessage = "";
-var errorMessage = "";
 var pollNames = [];
 
 mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
@@ -58,7 +58,7 @@ app.get('/', function(req, res){
 
 app.get('/login', function(req, res){
 	if(!isLoggedIn){
-		res.render('login', {seshName: sessionName, loggedIn: isLoggedIn});
+		res.render('login', {seshName: sessionName, loggedIn: isLoggedIn, success: successMessage});
 	}
 	else{
 		res.redirect("/dashboard");
@@ -81,14 +81,12 @@ app.post('/login', function(req, res){
   		}
   		else{
     	errorMessage = "Incorrect email or password. Try again.";
-    	successMessage = "";
-    	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage, success: successMessage});
+    	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
     }
   	}
     else{
     	errorMessage = "Incorrect email or password. Try again.";
-    	successMessage = "";
-    	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage, success: successMessage});
+    	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
     }
   });
 });
@@ -182,9 +180,9 @@ app.post("/settings", function(req, res){
   		});
   	}
     else{
-    	errorMessage = "There was an error when changing your password. Make sure it's at least 7 characters in length.";
+    	errorMessage = "There was an error when changing your password. Make sure you entered your old one correctly, and that the new one is at least 7 characters in length.";
     	successMessage = "";
-    	res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, success: successMessage, error: errorMessage});
+    	res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, error: errorMessage});
     }
   });
 	}
@@ -263,7 +261,7 @@ app.delete("/dashboard", function(req, res){
 		pollNames.splice(nameIndex, 1);
 		successMessage = "Poll removed.";
 		errorMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames, success: successMessage, error: errorMessage});
 		});
 		}
 	});
