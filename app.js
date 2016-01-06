@@ -1,11 +1,10 @@
 'use strict';
 
-// 1/2/16: Feed params{} to render templates
+// 1/6/16: Render polls. Use IDs as URLs rather than names?
 var mongoose = require('mongoose');
 var User = require("./dbmodels/user.js");
 var PollCollection = require("./dbmodels/poll_collection.js");
 var db = mongoose.connection;
-  // Create your schemas and models here.
 
 var User = mongoose.model("User");
 var PollCollection = mongoose.model("PollCollection");
@@ -24,6 +23,7 @@ var sessionEmail = "";
 var sessionName = "";
 var sessionID;
 var pollNames = [];
+var pollIDs = [];
 
 mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
 {
@@ -40,10 +40,6 @@ app.use(bodyParser.urlencoded({
 
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/templates');
-
-/*app.get('*', function(req, res){
-  res.send('Page not found', 404);
-});*/
 
 app.get('/', function(req, res){
 	var path = req.path;
@@ -69,7 +65,6 @@ app.post('/login', function(req, res){
   var email = req.body.email;
   var password = req.body.password;
   User.findOne({"email": email}, function(err, doc){
-  	//console.log(password + " database: " + doc.password + "hash: " + bcrypt.hashSync(password, 10));
   	if(!err && doc != null){
   		var hashedPassword = doc.password;
   		if(bcrypt.compareSync(password, hashedPassword)){
@@ -137,7 +132,6 @@ else{
 
   }
   else{
-  	//add error mesage
   	errorMessage = "Invalid information. Enter a valid email, a name longer than 2 characters, and a password longer than 6 characters.";
   	successMessage = "";
   	res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
@@ -194,11 +188,14 @@ app.get("/dashboard", function(req, res){
 	}
 	else{
 		pollNames = [];
-		PollCollection.find({"userID": sessionID}, {"polls.title": 1, "_id": 0}).lean().exec(function(err, doc){
+		pollIDs = [];
+		PollCollection.find({"userID": sessionID}, {"polls.title": 1, "polls._id": 1}).lean().exec(function(err, doc){
 			if(!err && doc.length){
 			for(var i = 0; i < doc[0].polls.length; i++){
 				pollNames.push(doc[0].polls[i].title);
+				pollIDs.push(doc[0].polls[i]._id);
 			}
+			console.log(pollIDs);
 			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
 			}
 			else{
@@ -236,12 +233,11 @@ app.post("/dashboard", function(req, res){
 		});
 		successMessage = "Poll created.";
 		errorMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames, success: successMessage});
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames, pollURLs: pollIDs, success: successMessage});
    		}
    });
 	}
 	else{
-		//display error message
 		errorMessage = "You submitted a poll title of inadequate length, or a quiz with an insufficient number of options. Try again.";
 		successMessage = "";
 		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
@@ -292,6 +288,13 @@ app.post("/polls/:name", function(req, res){
 		errorMessage = "";
 		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
+});
+
+app.use(function(req, res) {
+	res.status(404).render("404", {seshName: sessionName, loggedIn: isLoggedIn});
+});
+app.use(function(error, req, res, next) {
+    res.status(500).render("500", {seshName: sessionName, loggedIn: isLoggedIn});
 });
 
 
