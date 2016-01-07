@@ -1,6 +1,6 @@
 'use strict';
 
-// 1/6/16: Render polls. Use IDs as URLs rather than names?
+// 1/7/16: RENDER POLLS BY IDs. NO EXCUSES. GET IT DONE
 var mongoose = require('mongoose');
 var User = require("./dbmodels/user.js");
 var PollCollection = require("./dbmodels/poll_collection.js");
@@ -22,8 +22,7 @@ var successMessage = "";
 var sessionEmail = "";
 var sessionName = "";
 var sessionID;
-var pollNames = [];
-var pollIDs = [];
+var sessionPolls = [];
 
 mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
 {
@@ -61,7 +60,7 @@ app.get('/login', function(req, res){
 	}
 });
 
-app.post('/login', function(req, res){
+app.post('/login', function(req, res){ //attempt to log in with email/password
   var email = req.body.email;
   var password = req.body.password;
   User.findOne({"email": email}, function(err, doc){
@@ -103,7 +102,7 @@ app.get("/signup", function(req, res){
 	}
 });
 
-app.post('/signup', function(req, res){
+app.post('/signup', function(req, res){ //submit new account info
 	if(isLoggedIn){
 		res.redirect("/dashboard");
 	}
@@ -149,7 +148,7 @@ app.get("/settings", function(req, res){
 	}
 });
 
-app.post("/settings", function(req, res){
+app.post("/settings", function(req, res){ //submit changes to account info
     if(!isLoggedIn){
 		res.redirect("/");
 	}
@@ -187,25 +186,14 @@ app.get("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		pollNames = [];
-		pollIDs = [];
-		PollCollection.find({"userID": sessionID}, {"polls.title": 1, "polls._id": 1}).lean().exec(function(err, doc){
-			if(!err && doc.length){
-			for(var i = 0; i < doc[0].polls.length; i++){
-				pollNames.push(doc[0].polls[i].title);
-				pollIDs.push(doc[0].polls[i]._id);
-			}
-			console.log(pollIDs);
-			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
-			}
-			else{
-				res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames});
-			}
+		sessionPolls = [];
+		updateSessionPolls(function(){
+			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls});
 		});
 	}
 });
 
-app.post("/dashboard", function(req, res){
+app.post("/dashboard", function(req, res){ //adding a poll to the user's account
 	    if(!isLoggedIn){
 		res.redirect("/");
 	}
@@ -224,23 +212,19 @@ app.post("/dashboard", function(req, res){
    		if(!err){
    			userID = data._id;	
    			PollCollection.update({"userID": userID }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, function(err, data){
-			if(err){
-			 console.log(err);	
-			}
-			else{
-				pollNames.push(pollName);
-			}
+   				updateSessionPolls(function(){
+   						successMessage = "Poll created.";
+						errorMessage = "";
+						res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage});
+   				});
 		});
-		successMessage = "Poll created.";
-		errorMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames, pollURLs: pollIDs, success: successMessage});
    		}
    });
 	}
 	else{
 		errorMessage = "You submitted a poll title of inadequate length, or a quiz with an insufficient number of options. Try again.";
 		successMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, error: errorMessage});
 	}
 	}
 	
@@ -251,42 +235,41 @@ app.delete("/dashboard", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var deleteName = req.body.deleteName;
-		PollCollection.update({"userID": sessionID}, {$pull: {"polls": {"title": deleteName}}}, function(err, data) {
-		var nameIndex = pollNames.indexOf(deleteName);
-		pollNames.splice(nameIndex, 1);
+		var deleteThis = req.body.deleteID;
+		PollCollection.update({"userID": sessionID}, {$pull: {"polls": {"_id": deleteThis}}}, function(err, data) {
+		//remove poll by ID?
 		successMessage = "Poll removed.";
 		errorMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, pollTitles: pollNames, success: successMessage, error: errorMessage});
+		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage, error: errorMessage});
 		});
 		}
 	});
 
-app.get("/polls/:name", function(req, res){
+app.get("/polls/:id", function(req, res){
 	if(!isLoggedIn){
 		res.redirect("/");
 	}
 	else{
-		var pollName = req.params.name;
-		var thePoll = PollCollection.findOne({"email": sessionEmail, "polls.title": pollName});
+		var pollID = req.params.id;
+		var thePoll = PollCollection.findOne({"email": sessionEmail, "polls._id": new ObjectId(pollID)});
 		var thePollOptions = thePoll.polls.options;
 		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
 
-app.post("/polls/:name", function(req, res){
+app.post("/polls/:id", function(req, res){
 	if(!isLoggedIn){
 		res.redirect("/");
 	}
 	else{
-		var name = req.params.name;
+		var pollID = new req.params.pollid;
 		var optionName = req.params.optionName;
 		var userToIncrement = PollCollection.findOne({"email": sessionEmail});
-		var pollToIncrement = userToIncrement.findOne({"polls.title": name});
-		pollToIncrement.update({"options.text": optionName}, {$inc: {"frequency": 1}});
+		var pollToIncrement = userToIncrement.findOne({"polls._id": pollID});
+		pollToIncrement.update({"options.text": optionName}, {$inc: {"votes": 1}});
 		successMessage = "Vote cast!";
 		errorMessage = "";
-		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn});
+		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, success: successMessage});
 	}
 });
 
@@ -301,5 +284,18 @@ app.use(function(error, req, res, next) {
 app.listen(8080, function() {
 	console.log("The frontend server is running on port 8080.");
 });
+
 }
 });
+
+function updateSessionPolls(callback){
+			sessionPolls = [];
+			PollCollection.find({"userID": sessionID}, {"polls.title": 1, "polls._id": 1}).lean().exec(function(err, doc){
+			if(!err && doc.length){
+			for(var i = 0; i < doc[0].polls.length; i++){
+				sessionPolls.push({"id": doc[0].polls[i]._id, "name": doc[0].polls[i].title});
+			}
+			}
+			callback();
+		});
+}
