@@ -230,14 +230,13 @@ app.post("/dashboard", function(req, res){ //adding a poll to the user's account
 	
 });
 
-app.delete("/dashboard", function(req, res){
+app.delete("/dashboard", function(req, res){ //delete a poll from the list/database
 	if(!isLoggedIn){
 		res.redirect("/");
 	}
 	else{
 		var deleteThis = req.body.deleteID;
 		PollCollection.update({"userID": sessionID}, {$pull: {"polls": {"_id": deleteThis}}}, function(err, data) {
-		//remove poll by ID?
 		successMessage = "Poll removed.";
 		errorMessage = "";
 		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage, error: errorMessage});
@@ -250,10 +249,14 @@ app.get("/polls/:id", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		var pollID = req.params.id;
-		var thePoll = PollCollection.findOne({"email": sessionEmail, "polls._id": new ObjectId(pollID)});
-		var thePollOptions = thePoll.polls.options;
-		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn});
+		console.log(req.params.id);
+		PollCollection.findOne({"polls._id": req.params.id}, {"polls.$": 1}).lean().exec(function(err, doc) {
+		var thePollName = doc.polls[0].title;
+		console.log(thePollName);
+		var thePollOptions = doc.polls[0].options;
+		console.dir(thePollOptions);
+		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, pollName: thePollName, pollOptions: thePollOptions});
+		});
 	}
 });
 

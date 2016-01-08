@@ -2,7 +2,8 @@ include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(loggedIn, seshName)
 include ./partials/__jumbotron.jade
-    div#pollName #{pollName}
+div#pollName #{pollName}
     div#pollOptions
-        each option in #{pollOptions}
-            div= option
+        each option in pollOptions
+            div= option.text 
+                span=  option.votes
