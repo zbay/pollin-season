@@ -248,9 +248,9 @@ app.get("/polls/:id", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		Poll.findOne({"polls._id": req.params.id}, {"polls.$": 1}).lean().exec(function(err, doc) {
-		var thePoll = {"pollID": doc.polls[0]._id, "pollName": doc.polls[0].title, "pollOptions": doc.polls[0].options};
-		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, poll: thePoll, pollID: req.params.id});
+		Poll.findOne({"_id": req.params.id}).lean().exec(function(err, doc) {
+		var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options};
+		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, poll: thePoll, pollID: req.params.id, success:successMessage});
 		});
 	}
 }); //get poll
@@ -260,13 +260,13 @@ app.post("/polls/:id", function(req, res){  //register a vote for a poll's optio
 		res.redirect("/");
 	}
 	else{
-		var pollID = req.body.pollID;
+		var pollID = req.params.id;
 		var optionID = req.body.incrementID;
-		
-		//make stackoverflow question
-		Poll.update({"userID": sessionID, "polls._id": pollID, "polls.options._id": optionID}, {$inc: {"polls.options.$.votes": 1}}).lean().exec(function(err, doc){
+		Poll.update({"_id": pollID, "options._id": optionID}, {$inc: {"options.$.votes": 1}}).lean().exec(function(err, doc){
 			console.log(doc);
-			console.log(err);
+			errorMessage="";
+			successMessage="Vote cast!";
+			res.redirect("/polls/" + pollID);
 		});
 	}
 }); //post poll

@@ -30,7 +30,7 @@ div#oldPolls(style="#{ displayDelete ? 'display: block;' : 'display:none;' }")
           form#deletePollForm(method="POST")
             a(href="/polls/"+poll.id)= poll.name
             input(name="action" value="deletePoll" style="display:none;")
-            button.deletePollButton(name="deleteID" value=poll.id) Delete
+            button.deletePollButton(name="deleteID" value=poll.id type="submit") Delete
         br
 script.
     var optionsLength = 2;
