@@ -3,25 +3,26 @@ include ./partials/__navbar.jade
 mixin navigation(loggedIn, seshName)
 include ./partials/__jumbodashboard.jade
 br
-form#newPollForm(method="POST")
-  h1 New Poll
-  label
-    | Name your poll.
+div#newPoll(style="#{ displayDelete ? 'display: none;' : 'display:block;' }")
+  form#newPollForm(method="POST")
+    h1 New Poll
+    label
+      | Name your poll.
+      br
+      textarea#pollNameInput(name='pollName', placeholder='Favorite color?')
     br
-    textarea#pollNameInput(name='pollName', placeholder='Favorite color?')
-  br
-  label#optionList
-    | Options
+    label#optionList
+      | Options
+      br
+      input.option(type='text', name='options[0]', placeholder='Red')
+      br
+      input.option(type='text', name='options[1]', placeholder='Blue')
+      input(name="action" value="addPoll" style="display:none;")
     br
-    input.option(type='text', name='options[0]', placeholder='Red')
+    button#addOption Add an Option
     br
-    input.option(type='text', name='options[1]', placeholder='Blue')
-    input(name="action" value="addPoll" style="display:none;")
-  br
-  button#addOption Add an Option
-  br
-  input(type='submit', value='Save New Poll')
-div#oldPolls(style='display:none;')
+    input(type='submit', value='Save New Poll')
+div#oldPolls(style="#{ displayDelete ? 'display: block;' : 'display:none;' }")
   ul
   if polls
       for poll in polls
@@ -41,11 +42,11 @@ script.
     });
       
     $("#newPollButton").on("click", function(){
-      $("#newPollForm").attr("style", "display:block");
+      $("#newPoll").attr("style", "display:block");
       $("#oldPolls").attr("style", "display:none");
     });
     $("#existingPollButton").on("click", function(){
-      $("#newPollForm").attr("style", "display:none");
+      $("#newPoll").attr("style", "display:none");
       $("#oldPolls").attr("style", "display:block");
     });
     

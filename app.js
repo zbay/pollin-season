@@ -213,6 +213,7 @@ app.post("/dashboard", function(req, res){ //adding a poll to the user's account
    			var newPoll = new Poll({"userID": sessionID, "title": pollName, "options": optionsWithTallies});	
    			newPoll.save(function(){
    			  		getUpdatedPollList(function(){
+   			  			successMessage = "Poll added!";
 			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage});
 		}); // if no error
    			});
@@ -234,7 +235,7 @@ app.post("/dashboard", function(req, res){ //adding a poll to the user's account
 			successMessage = "Poll removed.";
 			errorMessage = "";
 			getUpdatedPollList(function(){
-			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage});
+			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage, displayDelete: true});
 		});
 		});
 	}
