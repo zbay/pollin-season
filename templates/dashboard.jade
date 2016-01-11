@@ -16,6 +16,7 @@ form#newPollForm(method="POST")
     input.option(type='text', name='options[0]', placeholder='Red')
     br
     input.option(type='text', name='options[1]', placeholder='Blue')
+    input(name="action" value="addPoll" style="display:none;")
   br
   button#addOption Add an Option
   br
@@ -25,8 +26,10 @@ div#oldPolls(style='display:none;')
   if polls
       for poll in polls
         li
-          a(href="/polls/"+poll.id)= poll.name
-          button.deletePollButton(name=poll.id) Delete
+          form#deletePollForm(method="POST")
+            a(href="/polls/"+poll.id)= poll.name
+            input(name="action" value="deletePoll" style="display:none;")
+            button.deletePollButton(name="deleteID" value=poll.id) Delete
         br
 script.
     var optionsLength = 2;
@@ -45,18 +48,6 @@ script.
       $("#newPollForm").attr("style", "display:none");
       $("#oldPolls").attr("style", "display:block");
     });
-    
-    $(".deletePollButton").on("click", function(){
-    var postID = $(this).attr("name");
-      //SEND DELETE AJAX REQUEST
-      $.ajax({
-      method: "DELETE",
-      url: "/dashboard",
-      data: {deleteID: postID} 
-      }).done(function() {
-        $( this ).parent.remove();
-        });
-      });
     
 if error
   include ./partials/__error.jade

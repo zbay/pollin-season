@@ -2,8 +2,27 @@ include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(loggedIn, seshName)
 include ./partials/__jumbotron.jade
-div#pollName #{pollName}
+div#pollName 
+    h3= poll.pollName
     div#pollOptions
-        each option in pollOptions
-            div= option.text 
-                span=  option.votes
+        each option in poll.pollOptions
+            button.optionButton(name= option._id)= option.text 
+            span.voteQuantity=  option.votes
+script.
+    $(".optionButton").on("click", function(){
+        console.log("clicked!");
+        var optionID = $(this).attr("name");
+        var theURL = window.location.href;
+        var slashIndex = theURL.lastIndexOf("/");
+        var thePollID = theURL.slice(slashIndex+1);
+        console.log(thePollID);
+        $.ajax({
+        method: "POST",
+        url: theURL,
+        data: {incrementID: optionID, pollID: thePollID}
+        }).done(function(){
+             $(this).siblings(":first").html($(this).siblings(":first").html() + 1);
+             $(this).attr("disabled", "disabled");
+             //add success message
+        });
+    });

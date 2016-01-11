@@ -1,19 +1,20 @@
 'use strict';
 
-// 1/7/16: RENDER POLLS BY IDs. NO EXCUSES. GET IT DONE
+// 1/10/16: https://stackoverflow.com/questions/21184340/async-for-loop-in-node-js
 var mongoose = require('mongoose');
 var User = require("./dbmodels/user.js");
-var PollCollection = require("./dbmodels/poll_collection.js");
+var Poll = require("./dbmodels/poll.js");
 var db = mongoose.connection;
 
 var User = mongoose.model("User");
-var PollCollection = mongoose.model("PollCollection");
+var Poll = mongoose.model("Poll");
 
 var express = require('express');
 var app = express();
 var mongo = require('mongodb');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt');
+var async = require('async');
 
 var app = express();
 var isLoggedIn = false;
@@ -120,8 +121,6 @@ else{
    User.findOne({"email": email}).lean().exec(function(err, data){
    if(!err){
    userID = data._id;	
-   var newPollCollection = new PollCollection({"userID": userID, "polls": []});
-   newPollCollection.save();
    successMessage = "Account successfully created!";
    errorMessage = "";
    res.redirect("/login");
@@ -184,64 +183,63 @@ app.post("/settings", function(req, res){ //submit changes to account info
 app.get("/dashboard", function(req, res){
 	if(!isLoggedIn){
 		res.redirect("/");
-	}
+	} //if not logged in
 	else{
-		sessionPolls = [];
-		updateSessionPolls(function(){
-			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls});
+		getUpdatedPollList(function(){
+			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage});	
 		});
-	}
+	} //else if not logged in
 });
 
 app.post("/dashboard", function(req, res){ //adding a poll to the user's account
 	    if(!isLoggedIn){
 		res.redirect("/");
-	}
+	} //if logged in
 	else{
+		if(req.body.action == "addPoll"){
 	var pollName = req.body.pollName;
 	var options = req.body.options;
 	var optionsWithTallies = [];
 	var userID;
-	for(var i = 0; i < options.length; i++){
-		var appendThis = {"text": options[i], "votes": 0};
-		optionsWithTallies.push(appendThis);
-	}
-
-	if(pollName.length > 1 && options.length > 1){
-	   User.findOne({"email": sessionEmail}).lean().exec(function(err, data){
-   		if(!err){
-   			userID = data._id;	
-   			PollCollection.update({"userID": userID }, {"$addToSet": {"polls": {"title": pollName, "options": optionsWithTallies}}}, function(err, data){
-   				updateSessionPolls(function(){
-   						successMessage = "Poll created.";
-						errorMessage = "";
-						res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage});
-   				});
-		});
-   		}
-   });
-	}
-	else{
-		errorMessage = "You submitted a poll title of inadequate length, or a quiz with an insufficient number of options. Try again.";
-		successMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, error: errorMessage});
-	}
-	}
+	async.each(options, appendOption, renderDash);
 	
-});
-
-app.delete("/dashboard", function(req, res){ //delete a poll from the list/database
-	if(!isLoggedIn){
-		res.redirect("/");
+	function appendOption(option, callback){
+		var appendThis = {"text": option, "votes": 0};
+		optionsWithTallies.push(appendThis);
+		return callback(null);
 	}
-	else{
-		var deleteThis = req.body.deleteID;
-		PollCollection.update({"userID": sessionID}, {$pull: {"polls": {"_id": deleteThis}}}, function(err, data) {
-		successMessage = "Poll removed.";
-		errorMessage = "";
-		res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage, error: errorMessage});
+	function renderDash(){
+			if(pollName.length > 1 && options.length > 1){
+   			var newPoll = new Poll({"userID": sessionID, "title": pollName, "options": optionsWithTallies});	
+   			newPoll.save(function(){
+   			  		getUpdatedPollList(function(){
+			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage});
+		}); // if no error
+   			});
+			}
+   			else{
+		errorMessage = "You submitted a poll with a title of inadequate length, a title that's already taken, or has an insufficient number of options. Try again.";
+		successMessage = "";
+		getUpdatedPollList(function(){
+			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, error: errorMessage});
 		});
-		}
+			}
+	}
+	}
+	else if(req.body.action == "deletePoll"){
+			var deleteThis = req.body.deleteID;
+			console.log(deleteThis);
+			sessionPolls = [];
+			Poll.remove({"_id": deleteThis}).lean().exec(function(err, data){
+			successMessage = "Poll removed.";
+			errorMessage = "";
+			getUpdatedPollList(function(){
+			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage});
+		});
+		});
+	}
+	else{}
+	}
 	});
 
 app.get("/polls/:id", function(req, res){
@@ -249,32 +247,28 @@ app.get("/polls/:id", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		console.log(req.params.id);
-		PollCollection.findOne({"polls._id": req.params.id}, {"polls.$": 1}).lean().exec(function(err, doc) {
-		var thePollName = doc.polls[0].title;
-		console.log(thePollName);
-		var thePollOptions = doc.polls[0].options;
-		console.dir(thePollOptions);
-		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, pollName: thePollName, pollOptions: thePollOptions});
+		Poll.findOne({"polls._id": req.params.id}, {"polls.$": 1}).lean().exec(function(err, doc) {
+		var thePoll = {"pollID": doc.polls[0]._id, "pollName": doc.polls[0].title, "pollOptions": doc.polls[0].options};
+		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, poll: thePoll, pollID: req.params.id});
 		});
 	}
-});
+}); //get poll
 
-app.post("/polls/:id", function(req, res){
+app.post("/polls/:id", function(req, res){  //register a vote for a poll's option
 	if(!isLoggedIn){
 		res.redirect("/");
 	}
 	else{
-		var pollID = new req.params.pollid;
-		var optionName = req.params.optionName;
-		var userToIncrement = PollCollection.findOne({"email": sessionEmail});
-		var pollToIncrement = userToIncrement.findOne({"polls._id": pollID});
-		pollToIncrement.update({"options.text": optionName}, {$inc: {"votes": 1}});
-		successMessage = "Vote cast!";
-		errorMessage = "";
-		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, success: successMessage});
+		var pollID = req.body.pollID;
+		var optionID = req.body.incrementID;
+		
+		//make stackoverflow question
+		Poll.update({"userID": sessionID, "polls._id": pollID, "polls.options._id": optionID}, {$inc: {"polls.options.$.votes": 1}}).lean().exec(function(err, doc){
+			console.log(doc);
+			console.log(err);
+		});
 	}
-});
+}); //post poll
 
 app.use(function(req, res) {
 	res.status(404).render("404", {seshName: sessionName, loggedIn: isLoggedIn});
@@ -284,21 +278,19 @@ app.use(function(error, req, res, next) {
 });
 
 
-app.listen(8080, function() {
+app.listen(8080, function(){
 	console.log("The frontend server is running on port 8080.");
-});
-
+}); //listen 8080
 }
-});
 
-function updateSessionPolls(callback){
-			sessionPolls = [];
-			PollCollection.find({"userID": sessionID}, {"polls.title": 1, "polls._id": 1}).lean().exec(function(err, doc){
-			if(!err && doc.length){
-			for(var i = 0; i < doc[0].polls.length; i++){
-				sessionPolls.push({"id": doc[0].polls[i]._id, "name": doc[0].polls[i].title});
-			}
-			}
+function getUpdatedPollList(callback){
+		sessionPolls = [];
+		var userPolls = Poll.find({"userID": sessionID}).stream();
+		userPolls.on("data", function(pollData){
+			sessionPolls.push({"id": pollData._id, "name": pollData.title});
+		});
+		userPolls.on("end", function(){
 			callback();
 		});
 }
+});
