@@ -300,7 +300,7 @@ app.listen(8080, function(){
 
 function getUpdatedPollList(callback){
 		sessionPolls = [];
-		var userPolls = Poll.find({"userID": sessionID}).stream();
+		var userPolls = Poll.find().stream();
 		userPolls.on("data", function(pollData){
 			sessionPolls.push({"id": pollData._id, "name": pollData.title});
 		});
