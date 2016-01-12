@@ -2,29 +2,30 @@ include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(loggedIn, seshName, seshEmail)
 include ./partials/__jumbotron.jade
-h3 Update your account information
-form#changeinfoform(method="POST")
-  label
-    | Name
+div#changeInfo
+  h3.greenText Update your account information
+  form(method="POST")
+    label
+      span.greenText Name
+      br
+      input(type='text', name='name' value=seshName)
     br
-    input(type='text', name='name' value=seshName)
-  br
-  label
-    | Email
+    label
+      span.greenText Email
+      br
+      input(type='text', name='email' value=seshEmail)
     br
-    input(type='text', name='email' value=seshEmail)
-  br
-  label
-    | Old Password
+    label
+      span.greenText Old Password
+      br
+      input(type='password', name='currentPassword')
     br
-    input(type='password', name='currentPassword')
-  br
-  label
-    | New Password
+    label
+      span.greenText New Password
+      br
+      input(type='password', name='newPassword')
     br
-    input(type='password', name='newPassword')
-  br
-  input(type='submit', value='Update')
+    input(type='submit', value='Update')
 include ./partials/__success.jade
 mixin successDisplay(success)
 include ./partials/__error.jade

@@ -48,6 +48,8 @@ app.get('/', function(req, res){
 		res.redirect("/dashboard");
 	}
 	else{
+		successMessage = "";
+		errorMessage = "";
 		res.render('index', {seshName: sessionName, loggedIn: isLoggedIn});	
 	}
 });
@@ -57,6 +59,8 @@ app.get('/login', function(req, res){
 		res.render('login', {seshName: sessionName, loggedIn: isLoggedIn, success: successMessage});
 	}
 	else{
+		successMessage = "";
+		errorMessage = "";
 		res.redirect("/dashboard");
 	}
 });
@@ -75,12 +79,12 @@ app.post('/login', function(req, res){ //attempt to log in with email/password
   		res.redirect("/dashboard");
   		}
   		else{
-    	errorMessage = "Incorrect email or password. Try again.";
+    	errorMessage = "Error: incorrect email or password. Try again.";
     	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
     }
   	}
     else{
-    	errorMessage = "Incorrect email or password. Try again.";
+    	errorMessage = "Error: incorrect email or password. Try again.";
     	res.render("login", {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
     }
   });
@@ -90,6 +94,8 @@ app.get('/logout', function(req, res){
 	isLoggedIn = false;
 	sessionEmail = "";
 	sessionName = "";
+	successMessage = "";
+	errorMessage = "";
 	sessionID = null;
 	res.redirect("/");
 });
@@ -99,6 +105,8 @@ app.get("/signup", function(req, res){
 		res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 	else{
+		successMessage = "";
+		errorMessage = "";
 		res.redirect("/dashboard");
 	}
 });
@@ -130,7 +138,7 @@ else{
 
   }
   else{
-  	errorMessage = "Invalid information. Enter a valid email, a name longer than 2 characters, and a password longer than 6 characters.";
+  	errorMessage = "Error: invalid information. Enter a valid email, a name longer than 2 characters, and a password longer than 6 characters.";
   	successMessage = "";
   	res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
   }
@@ -143,6 +151,8 @@ app.get("/settings", function(req, res){
 		res.redirect("/");
 	}
 	else{
+		successMessage = "";
+		errorMessage = "";
 		res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
@@ -172,7 +182,7 @@ app.post("/settings", function(req, res){ //submit changes to account info
   		});
   	}
     else{
-    	errorMessage = "There was an error when changing your password. Make sure you entered your old one correctly, and that the new one is at least 7 characters in length.";
+    	errorMessage = "Error: unsuccessful password change. Make sure you entered your old one correctly, and that the new one is at least 7 characters in length.";
     	successMessage = "";
     	res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, error: errorMessage});
     }
@@ -185,8 +195,10 @@ app.get("/dashboard", function(req, res){
 		res.redirect("/");
 	} //if not logged in
 	else{
+		successMessage = "";
+		errorMessage = "";
 		getUpdatedPollList(function(){
-			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage});	
+			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls});	
 		});
 	} //else if not logged in
 });
@@ -219,7 +231,7 @@ app.post("/dashboard", function(req, res){ //adding a poll to the user's account
    			});
 			}
    			else{
-		errorMessage = "You submitted a poll with a title of inadequate length, a title that's already taken, or has an insufficient number of options. Try again.";
+		errorMessage = "Error: you submitted a poll with a title of inadequate length, a title that's already taken, or has an insufficient number of options. Try again.";
 		successMessage = "";
 		getUpdatedPollList(function(){
 			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, error: errorMessage});
@@ -250,6 +262,8 @@ app.get("/polls/:id", function(req, res){
 	else{
 		Poll.findOne({"_id": req.params.id}).lean().exec(function(err, doc) {
 		var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options};
+		//successMessage = "";
+		//errorMessage = "";
 		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, poll: thePoll, pollID: req.params.id, success:successMessage});
 		});
 	}
