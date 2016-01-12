@@ -19,5 +19,6 @@ include ./partials/__jumbotron.jade
         input(type='password', name='password')
       br
       input(type='submit', value='Sign Up')
-include ./partials/__error.jade
-include ./partials/__success.jade
+if error
+  include ./partials/__error.jade
+  mixin errorDisplay(error)

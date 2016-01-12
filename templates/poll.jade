@@ -2,13 +2,15 @@ include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(loggedIn, seshName)
 include ./partials/__jumbotron.jade
-div#pollName 
+div#pollPresentation
     h3= poll.pollName
     form#pollOptions(method="POST")
         each option in poll.pollOptions
             //input(style="display:none", name=incrementID, value=option._id)
             button.optionButton(name="incrementID", value=option._id, type="submit")= option.text 
+            |  
             span.voteQuantity=  option.votes
+            |  
 script.
     $(".optionButton").on("click", function(){
              $(this).siblings(":first").html($(this).siblings(":first").html() + 1);

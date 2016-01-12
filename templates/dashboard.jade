@@ -25,7 +25,10 @@ div#newPoll(style="#{ displayDelete ? 'display: none;' : 'display:block;' }")
 div#oldPolls(style="#{ displayDelete ? 'display: block;' : 'display:none;' }")
   ul
   if polls
-      table
+      table#pollTable
+        tr
+          th Poll Question
+          th Remove Poll?
         for poll in polls
           tr
             form#deletePollForm(method="POST")

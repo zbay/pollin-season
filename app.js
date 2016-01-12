@@ -18,10 +18,10 @@ var async = require('async');
 
 var app = express();
 var isLoggedIn = false;
-var errorMessage = "";
-var successMessage = "";
-var sessionEmail = "";
-var sessionName = "";
+var errorMessage = null;
+var successMessage = null;
+var sessionEmail = null;
+var sessionName = null;
 var sessionID;
 var sessionPolls = [];
 
@@ -48,8 +48,8 @@ app.get('/', function(req, res){
 		res.redirect("/dashboard");
 	}
 	else{
-		successMessage = "";
-		errorMessage = "";
+		successMessage = null;
+		errorMessage = null;
 		res.render('index', {seshName: sessionName, loggedIn: isLoggedIn});	
 	}
 });
@@ -59,8 +59,8 @@ app.get('/login', function(req, res){
 		res.render('login', {seshName: sessionName, loggedIn: isLoggedIn, success: successMessage});
 	}
 	else{
-		successMessage = "";
-		errorMessage = "";
+		successMessage = null;
+		errorMessage = null;
 		res.redirect("/dashboard");
 	}
 });
@@ -92,10 +92,10 @@ app.post('/login', function(req, res){ //attempt to log in with email/password
 
 app.get('/logout', function(req, res){
 	isLoggedIn = false;
-	sessionEmail = "";
-	sessionName = "";
-	successMessage = "";
-	errorMessage = "";
+	sessionEmail = null;
+	sessionName = null;
+	successMessage = null;
+	errorMessage = null;
 	sessionID = null;
 	res.redirect("/");
 });
@@ -105,8 +105,8 @@ app.get("/signup", function(req, res){
 		res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 	else{
-		successMessage = "";
-		errorMessage = "";
+		successMessage = null;
+		errorMessage = null;
 		res.redirect("/dashboard");
 	}
 });
@@ -130,7 +130,7 @@ else{
    if(!err){
    userID = data._id;	
    successMessage = "Account successfully created!";
-   errorMessage = "";
+   errorMessage = null;
    res.redirect("/login");
    	}
    });
@@ -139,7 +139,7 @@ else{
   }
   else{
   	errorMessage = "Error: invalid information. Enter a valid email, a name longer than 2 characters, and a password longer than 6 characters.";
-  	successMessage = "";
+  	successMessage = null;
   	res.render('signup', {seshName: sessionName, loggedIn: isLoggedIn, error: errorMessage});
   }
 }
@@ -151,8 +151,8 @@ app.get("/settings", function(req, res){
 		res.redirect("/");
 	}
 	else{
-		successMessage = "";
-		errorMessage = "";
+		successMessage = null;
+		errorMessage = null;
 		res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn});
 	}
 });
@@ -176,14 +176,14 @@ app.post("/settings", function(req, res){ //submit changes to account info
   					sessionEmail = newEmail;
   					sessionName = newName;
   					successMessage = "Info successfully changed!";
-  					errorMessage = "";
+  					errorMessage = null;
   					res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, success: successMessage});
   			}
   		});
   	}
     else{
     	errorMessage = "Error: unsuccessful password change. Make sure you entered your old one correctly, and that the new one is at least 7 characters in length.";
-    	successMessage = "";
+    	successMessage = null;
     	res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, error: errorMessage});
     }
   });
@@ -195,8 +195,8 @@ app.get("/dashboard", function(req, res){
 		res.redirect("/");
 	} //if not logged in
 	else{
-		successMessage = "";
-		errorMessage = "";
+		successMessage = null;
+		errorMessage = null;
 		getUpdatedPollList(function(){
 			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls});	
 		});
