@@ -296,10 +296,10 @@ app.post("/polls/:id", function(req, res){  //register a vote for a poll's optio
 app.use(function(req, res) {
 	res.status(404).render("404", {seshName: sessionName, loggedIn: isLoggedIn});
 });
-app.use(function(error, req, res, next) {
+/*app.use(function(error, req, res, next) {
     res.status(500).render("500", {seshName: sessionName, loggedIn: isLoggedIn});
 });
-
+*/
 
 app.listen(8080, function(){
 	console.log("The frontend server is running on port 8080.");
