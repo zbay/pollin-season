@@ -1,6 +1,6 @@
 'use strict';
 
-// 1/10/16: https://stackoverflow.com/questions/21184340/async-for-loop-in-node-js
+// 1/12: all the user display and delete/voting restrictions
 var mongoose = require('mongoose');
 var User = require("./dbmodels/user.js");
 var Poll = require("./dbmodels/poll.js");
@@ -216,13 +216,13 @@ app.post("/dashboard", function(req, res){ //adding a poll to the user's account
 	async.each(options, appendOption, renderDash);
 	
 	function appendOption(option, callback){
-		var appendThis = {"text": option, "votes": 0};
+		var appendThis = {"text": option, "votes": []};
 		optionsWithTallies.push(appendThis);
 		return callback(null);
 	}
 	function renderDash(){
 			if(pollName.length > 1 && options.length > 1){
-   			var newPoll = new Poll({"userID": sessionID, "title": pollName, "options": optionsWithTallies});	
+   			var newPoll = new Poll({"userID": sessionID, "creatorName": sessionName, "title": pollName, "options": optionsWithTallies});	
    			newPoll.save(function(){
    			  		getUpdatedPollList(function(){
    			  			successMessage = "Poll added!";
@@ -276,7 +276,7 @@ app.post("/polls/:id", function(req, res){  //register a vote for a poll's optio
 	else{
 		var pollID = req.params.id;
 		var optionID = req.body.incrementID;
-		Poll.update({"_id": pollID, "options._id": optionID}, {$inc: {"options.$.votes": 1}}).lean().exec(function(err, doc){
+		Poll.update({"_id": pollID, "options._id": optionID}, {$addToSet: {"options.$.votes": sessionID}}).lean().exec(function(err, doc){
 			console.log(doc);
 			errorMessage="";
 			successMessage="Vote cast!";

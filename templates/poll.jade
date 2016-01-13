@@ -4,12 +4,13 @@ mixin navigation(loggedIn, seshName)
 include ./partials/__jumbotron.jade
 div#pollPresentation
     h3= poll.pollName
+    h4 Poll created by:
+    span= seshName
     form#pollOptions(method="POST")
         each option in poll.pollOptions
-            //input(style="display:none", name=incrementID, value=option._id)
             button.optionButton(name="incrementID", value=option._id, type="submit")= option.text 
             |  
-            span.voteQuantity=  option.votes
+            span.voteQuantity=  option.votes.length
             |  
 script.
     $(".optionButton").on("click", function(){
