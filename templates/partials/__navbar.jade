@@ -9,13 +9,13 @@ mixin navigation(loggedIn, seshName)
       ul.nav.navbar-nav.navbar-right
         if loggedIn
           li
-            a(href='./dashboard') Hello, #{seshName}
+            a(href='../dashboard') Hello, #{seshName}
           li  
-            a(href='./settings') Settings
+            a(href='../settings') Settings
           li
-            a(href='./logout') Sign Out
+            a(href='../logout') Sign Out
         else
           li
-            a(href='./signup') Sign Up
+            a(href='../signup') Sign Up
           li
-            a(href='./login') Log In
+            a(href='../login') Log In

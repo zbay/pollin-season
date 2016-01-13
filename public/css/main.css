@@ -49,11 +49,24 @@ body{
 #pollTable{
     margin-left:auto;
     margin-right:auto;
-    text-align:left;
+    text-align:center;
     min-width:30%;
+    border: 5px solid green;
+}
+th{
+    text-align:center;
+}
+td{
+    padding:5px;
+}
+th, td{
+    border: 2px solid green;
 }
 #pollPresentation{
     margin-right:auto;
     margin-left:auto;
+    text-align:center;
+}
+#pollExplainer{
     text-align:center;
 }

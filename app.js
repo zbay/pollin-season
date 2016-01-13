@@ -241,16 +241,24 @@ app.post("/dashboard", function(req, res){ //adding a poll to the user's account
 	}
 	else if(req.body.action == "deletePoll"){
 			var deleteThis = req.body.deleteID;
-			console.log(deleteThis);
 			sessionPolls = [];
-			Poll.remove({"_id": deleteThis}).lean().exec(function(err, data){
-			successMessage = "Poll removed.";
-			errorMessage = "";
-			getUpdatedPollList(function(){
-			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage, displayDelete: true});
-		});
-		});
-	}
+			Poll.remove({"_id": deleteThis, "userID": sessionID}).lean().exec(function(err, data){
+				console.log(data);
+			if(err || data.result.n == 0){
+				errorMessage = "Error. You're not allowed to delete that poll because you did not create it! Sorry.";
+				getUpdatedPollList(function(){
+				res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, error: errorMessage, displayDelete: true});	
+			}); //getUpdatedPollList
+			} //err
+			else{
+				successMessage = "Poll removed.";
+				errorMessage = "";
+				getUpdatedPollList(function(){
+				res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionPolls, success: successMessage, displayDelete: true});	
+			}); //getUpdatedPollList
+			} //!err
+		}); //Poll.remove
+		} //else if deletePoll
 	else{}
 	}
 	});

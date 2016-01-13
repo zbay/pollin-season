@@ -21,14 +21,14 @@ div#newPoll(style="#{ displayDelete ? 'display: none;' : 'display:block;' }")
     button#addOption Add an Option
     br
     br
-    input(type='submit', value='Create New Poll')
+    input(type='submit', value='Save This Poll')
 div#oldPolls(style="#{ displayDelete ? 'display: block;' : 'display:none;' }")
   ul
   if polls
       table#pollTable
         tr
-          th Poll Question
-          th Remove Poll?
+          th.greenText Poll Question
+          th.greenText Remove Poll?
         for poll in polls
           tr
             form#deletePollForm(method="POST")

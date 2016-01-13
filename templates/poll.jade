@@ -3,15 +3,17 @@ include ./partials/__navbar.jade
 mixin navigation(loggedIn, seshName)
 include ./partials/__jumbotron.jade
 div#pollPresentation
-    h3= poll.pollName
-    h4 Poll created by:
-    span= seshName
+    h3.greenText= poll.pollName
+        h4 Poll created by:
+            |  
+            span= seshName
     form#pollOptions(method="POST")
         each option in poll.pollOptions
             button.optionButton(name="incrementID", value=option._id, type="submit")= option.text 
             |  
             span.voteQuantity=  option.votes.length
             |  
+div#pollExplainer Note that you can vote for as many options as you want, but cannot vote for the same option twice.
 script.
     $(".optionButton").on("click", function(){
              $(this).siblings(":first").html($(this).siblings(":first").html() + 1);
