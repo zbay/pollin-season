@@ -10,7 +10,7 @@ var mongo = require('mongodb');
 var bodyParser = require('body-parser');
 var controller = require('./controllers');
 
-mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
+mongoose.connect('mongodb://heroku_l51d2vps:2aq0iso1kf2gjkv2b8tb1nm5g8@ds045475.mongolab.com:45475/heroku_l51d2vps', function (err, db)
 {
  if (err) {
       throw new Error('Database failed to connect!');
