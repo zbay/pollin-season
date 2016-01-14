@@ -8,7 +8,7 @@ var express = require('express');
 var app = express();
 var mongo = require('mongodb');
 var bodyParser = require('body-parser');
-var controller = require('./controllers/router.js');
+var controller = require('./controllers');
 
 mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
 {
@@ -28,7 +28,7 @@ app.set('views', __dirname + '/templates');
 
 controller.set(app);  
 
-app.listen(8080, function(){
+app.listen(process.env.PORT || 8080, function(){
 	console.log("The frontend server is running on port 8080.");
 }); //listen 8080
 }
