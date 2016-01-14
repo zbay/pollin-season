@@ -15,7 +15,7 @@ mongoose.connect('mongodb://heroku_l51d2vps:2aq0iso1kf2gjkv2b8tb1nm5g8@ds045475.
  if (err) {
       throw new Error('Database failed to connect!');
    } else {
-      console.log('Successfully connected to MongoDB on port 27017.');
+      console.log('Successfully connected to MongoDB.');
 
 app.use('/static', express.static(__dirname + '/public'));
 app.use(bodyParser.json());
