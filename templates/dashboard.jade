@@ -39,7 +39,6 @@ div#oldPolls(style="#{ displayDelete ? 'display: block;' : 'display:none;' }")
                 input(name="action" value="deletePoll" style="display:none;")
               td
                 a(href="/editPoll/"+poll.id) Edit
-                input(name="action" value="deletePoll" style="display:none;")
               td
                 button.deletePollButton(name="deleteID" value=poll.id type="submit") Delete
 script.
