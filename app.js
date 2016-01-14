@@ -325,6 +325,42 @@ app.get("/editPoll/:id", function(req, res) {
 	}
 });
 
+app.post("/editPoll/:id", function(req, res){  //register a vote for a poll's option
+	if(!isLoggedIn){
+		res.redirect("/");
+	}
+	else{
+		var pollID = req.params.id;
+		var pollName = req.body.pollName;
+		var options = req.body.options;
+		var optionsWithTallies = [];
+		
+		async.each(options, appendOption, renderDash);
+	
+	function appendOption(option, callback){
+		var appendThis = {"text": option, "votes": []};
+		optionsWithTallies.push(appendThis);
+		return callback(null);
+	}
+	function renderDash(){
+			if(pollName.length > 1 && options.length > 1){
+				errorMessage = "";
+				successMessage = "Poll updated!";
+				Poll.update({"_id":pollID}, {"title": pollName, "options": optionsWithTallies}, function(){
+				res.redirect("editPoll/" + pollID);
+				});
+			}
+   			else{
+		errorMessage = "Error: you submitted a poll with a title of inadequate length, a title that's already taken, or has an insufficient number of options. Try again.";
+		successMessage = "";
+		getMyPollList(function(){
+			res.redirect("editPoll/" + pollID);
+		});
+			}
+	}
+	}
+}); //post poll
+
 app.use(function(req, res) {
 	res.status(404).render("404", {seshName: sessionName, loggedIn: isLoggedIn});
 });
