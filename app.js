@@ -55,7 +55,7 @@ app.get('/', function(req, res){
 	}
 });
 
-app.get('/login', function(req, res){
+app.get('/login', function(req, res){ //access login page
 	if(!isLoggedIn){
 		res.render('login', {seshName: sessionName, loggedIn: isLoggedIn, success: successMessage});
 	}
@@ -91,7 +91,7 @@ app.post('/login', function(req, res){ //attempt to log in with email/password
   });
 });
 
-app.get('/logout', function(req, res){
+app.get('/logout', function(req, res){ //sign out
 	isLoggedIn = false;
 	sessionEmail = null;
 	sessionName = null;
@@ -204,12 +204,12 @@ app.get("/dashboard", function(req, res){
 	} //else if not logged in
 });
 
-app.post("/dashboard", function(req, res){ //adding a poll to the user's account
+app.post("/dashboard", function(req, res){ //adding or deleting a poll from the user's account
 	    if(!isLoggedIn){
 		res.redirect("/");
 	} //if logged in
 	else{
-		if(req.body.action == "addPoll"){
+	if(req.body.action == "addPoll"){ //add poll
 	var pollName = req.body.pollName;
 	var options = req.body.options;
 	var optionsWithTallies = [];
@@ -240,7 +240,7 @@ app.post("/dashboard", function(req, res){ //adding a poll to the user's account
 			}
 	}
 	}
-	else if(req.body.action == "deletePoll"){
+	else if(req.body.action == "deletePoll"){ //delete the selected poll
 			var deleteThis = req.body.deleteID;
 			sessionMyPolls = [];
 			Poll.remove({"_id": deleteThis, "userID": sessionID}).lean().exec(function(err, data){
@@ -271,8 +271,6 @@ app.get("/polls/:id", function(req, res){
 	else{
 		Poll.findOne({"_id": req.params.id}).lean().exec(function(err, doc) {
 		var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options, "creatorName": doc.creatorName};
-		//successMessage = "";
-		//errorMessage = "";
 		res.render("poll", {seshName: sessionName, loggedIn: isLoggedIn, poll: thePoll, pollID: req.params.id, success:successMessage});
 		});
 	}
@@ -315,13 +313,24 @@ app.get("/otherpolls", function(req, res){
 	}
 });
 
+app.get("/editPoll/:id", function(req, res) {
+   	if(!isLoggedIn){
+		res.redirect("/");
+	}
+	else{
+		Poll.findOne({"_id": req.params.id, "userID": sessionID}).lean().exec(function(err, doc) {
+		var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options};
+		res.render("editPoll", {seshName: sessionName, loggedIn: isLoggedIn, poll: thePoll, pollID: req.params.id, success:successMessage});
+		});
+	}
+});
+
 app.use(function(req, res) {
 	res.status(404).render("404", {seshName: sessionName, loggedIn: isLoggedIn});
 });
 /*app.use(function(error, req, res, next) {
     res.status(500).render("500", {seshName: sessionName, loggedIn: isLoggedIn});
-});
-*/
+});*/
 
 app.listen(8080, function(){
 	console.log("The frontend server is running on port 8080.");

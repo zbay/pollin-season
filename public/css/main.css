@@ -28,7 +28,7 @@ input[type="submit"]{
     background-color: white;
     border-radius: 5px;
 }
-#error, #newPoll, #oldPolls, #success, #httpError, #changeInfo{
+#error, #newPoll, #oldPolls, #success, #httpError, #changeInfo, #editPoll{
     text-align: center;
     margin-bottom:2%;
 }
