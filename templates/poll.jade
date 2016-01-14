@@ -7,7 +7,7 @@ div#pollPresentation
     h3.greenText= poll.pollName
         h4 Poll created by:
             |  
-            span= seshName
+            span= poll.creatorName
     form#pollOptions(method="POST")
         each option in poll.pollOptions
             button.optionButton(name="incrementID", value=option._id, type="submit")= option.text 
@@ -17,19 +17,22 @@ div#pollPresentation
 br
 div#pollExplainer Note that you can vote for as many options as you want, but cannot vote for the same option twice.
 br
+if error
+  include ./partials/__error.jade
+  mixin errorDisplay(error)
+if success
+  include ./partials/__success.jade
+  mixin successDisplay(success)
+br
 div#poll_chart(align="center")
+br
 script.
     var poll = !{JSON.stringify(poll)};
-    var dummy = null;
-      // Load the Visualization API and the piechart package.
-     google.load('visualization', '1.0', {'packages':['corechart']});
-      // Set a callback to run when the Google Visualization API is loaded.
+    google.load('visualization', '1.0', {'packages':['corechart']});
+
      google.setOnLoadCallback(drawChart);
-      // Callback that creates and populates a data table,
-      // instantiates the pie chart, passes in the data and
-      // draws it.
+
      function drawChart() {
-        // Create the data table.
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Option');
         data.addColumn('number', 'Votes');
@@ -37,13 +40,12 @@ script.
             data.addRow([poll.pollOptions[i].text, poll.pollOptions[i].votes.length]);
         }
 
-        // Set chart options
     var options = {'title':poll.pollName,
                        'width':500,
                        'height':300,
-                       'colors':["green"]};
+                       'colors':["green"],
+                       'hAxis': {'viewWindow': {'min':0.0}}};
 
-        // Instantiate and draw our chart, passing in some options.
     var chart = new google.visualization.BarChart(document.getElementById('poll_chart'));
         chart.draw(data, options);
       }
