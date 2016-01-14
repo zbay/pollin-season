@@ -1,22 +1,17 @@
+Pollin' Season Version 1.0
 
-     ,-----.,--.                  ,--. ,---.   ,--.,------.  ,------.
-    '  .--./|  | ,---. ,--.,--. ,-|  || o   \  |  ||  .-.  \ |  .---'
-    |  |    |  || .-. ||  ||  |' .-. |`..'  |  |  ||  |  \  :|  `--, 
-    '  '--'\|  |' '-' ''  ''  '\ `-' | .'  /   |  ||  '--'  /|  `---.
-     `-----'`--' `---'  `----'  `---'  `--'    `--'`-------' `------'
-    ----------------------------------------------------------------- 
+Make, take, and view custom polls!
 
+This project is running at the following URL: https://pollin-season.herokuapp.com/, and largely follows the project guidelines suggested by FreeCodeCamp, described here (http://www.freecodecamp.com/challenges/basejump-build-a-voting-app).
 
-Welcome to your Node.js project on Cloud9 IDE!
+I am not 100% finished with this project. Here's what I hope to tinker on in the future:
+1. Secure session cookies
+2. Code organization that more-or-less follows best practices
+3. Exhaustive error handling
+4. Pagination for large lists of polls
+5. Improved look/feel
+6. Use React.JS for views
+7. Minimize code redundancy
+8. Enable poll watchlists and a sharing feature
 
-This chat example showcases how to use `socket.io` with a static `express` server.
-
-## Running the server
-
-1) Open `server.js` and start the app by clicking on the "Run" button in the top menu.
-
-2) Alternatively you can launch the app from the Terminal:
-
-    $ node server.js
-
-Once the server is running, open the project in the shape of 'https://projectname-username.c9.io/'. As you enter your name, watch the Users list (on the left) update. Once you press Enter or Send, the message is shared with all connected clients.
+I disregarded certain parts of the FreeCodeCamp project requirements. Namely, I chose to restrict poll access to authenticated users. Any authenticated user can vote on any poll, but only the poll's creator can edit or remove a given poll.
