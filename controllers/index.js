@@ -182,7 +182,6 @@ app.post("/dashboard", function(req, res){ //adding or deleting a poll from the 
 		res.redirect("/");
 	} //if logged in
 	else{
-	if(req.body.action == "addPoll"){ //add poll
 	var pollName = req.body.pollName;
 	var options = req.body.options;
 	var optionsWithTallies = [];
@@ -195,7 +194,7 @@ app.post("/dashboard", function(req, res){ //adding or deleting a poll from the 
 		return callback(null);
 	}
 	function renderDash(){
-			if(pollName.length > 1 && options.length > 1){
+		if(pollName.length > 1 && options.length > 1){
    			var newPoll = new Poll({"userID": sessionID, "creatorName": sessionName, "title": pollName, "options": optionsWithTallies});	
    			newPoll.save(function(){
    			  		getMyPollList(function(){
@@ -208,35 +207,32 @@ app.post("/dashboard", function(req, res){ //adding or deleting a poll from the 
 		errorMessage = "Error: you submitted a poll with a title of inadequate length, a title that's already taken, or has an insufficient number of options. Try again.";
 		successMessage = "";
 		getMyPollList(function(){
-			res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionMyPolls, error: errorMessage});
+			res.render("dashboardAJAX", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionMyPolls, error: errorMessage});
 		});
 			}
 	}
 	}
-	else if(req.body.action == "deletePoll"){ //delete the selected poll
-	console.log("deletePoll event");
+	});
+app.delete("/dashboard", function(req, res){
+		console.log("deletePoll event");
 			var deleteThis = req.body.deleteID;
 			sessionMyPolls = [];
 			Poll.remove({"_id": deleteThis, "userID": sessionID}).lean().exec(function(err, data){
 
 			if(err || data.result.n == 0){
 				errorMessage = "Error. You're not allowed to delete that poll because you did not create it! Sorry.";
-				getMyPollList(function(){
-				res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionMyPolls, error: errorMessage, displayDelete: true});	
-			}); //getUpdatedPollList
+				res.send(JSON.stringify({ error:errorMessage }));
+				//res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionMyPolls, error: errorMessage, displayDelete: true});	
+			//getUpdatedPollList
 			} //err
 			else{
 				successMessage = "Poll removed.";
 				errorMessage = "";
-				getMyPollList(function(){
-				res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionMyPolls, success: successMessage, displayDelete: true});	
-			}); //getUpdatedPollList
+				res.send(JSON.stringify({ success: successMessage  }));
+				//res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionMyPolls, success: successMessage, displayDelete: true});	
 			} //!err
 		}); //Poll.remove
-		} //else if deletePoll
-	else{}
-	}
-	});
+});
 
 app.get("/polls/:id", function(req, res){
 	if(!isLoggedIn){

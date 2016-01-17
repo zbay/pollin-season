@@ -33,14 +33,12 @@ div#oldPolls(style="#{ displayDelete ? 'display: block;' : 'display:none;' }")
           th.greenText Remove Poll
         for poll in polls
           tr
-            form#deletePollForm(method="POST")
-              td
+            td
                 a(href="/polls/"+poll.id)= poll.name
-                input(name="action" value="deletePoll" style="display:none;")
-              td
+            td
                 a(href="/editPoll/"+poll.id) Edit
-              td
-                button.deletePollButton(name="deleteID" value=poll.id type="submit") Delete
+            td
+                button.deletePollButton(name="deleteID" value=poll.id) Delete
 script.
     var optionsLength = 2;
     $("#addOption").on("click", function(){
@@ -70,7 +68,25 @@ script.
       $("#newPoll").attr("style", "display:none");
       $("#oldPolls").attr("style", "display:block");
     });
-    
+      
+        $(".deletePollButton").on("click", function(){
+            var postID = $(this).attr("value");
+            $(this).parent().parent().remove()
+       $.ajax({
+       method: "DELETE",
+       url: "/dashboard",
+       data: {deleteID: postID},
+       success: function(data){
+       if(data.error){
+        $("#error").html(error);
+       }
+       if(data.success){
+       $("success").html(success);
+       }
+       }
+       });
+       }
+       );
 if error
   include ./partials/__error.jade
   mixin errorDisplay(error)
