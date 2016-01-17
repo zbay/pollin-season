@@ -145,13 +145,18 @@ app.post("/settings", function(req, res){ //submit changes to account info
 			var hashedPassword = doc.password;
   	if(doc && !err && newPassword.length > 6 && bcrypt.compareSync(currentPassword, hashedPassword)){
   		var userID = doc._id;
-  		User.update({"email": sessionEmail}, {"$set": {"password": bcrypt.hashSync(newPassword, 10), "name": newName, "email": newEmail}}, function(err, data){
+  		User.update({"_id": sessionID}, {"$set": {"password": bcrypt.hashSync(newPassword, 10), "name": newName, "email": newEmail}}, function(err, data){
   			if(!err){
   					sessionEmail = newEmail;
   					sessionName = newName;
   					successMessage = "Info successfully changed!";
   					errorMessage = null;
   					res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, success: successMessage});
+  			}
+  			else{
+  				errorMessage = "Error. That email address is associated with another account. Use a different one.";
+  				successMessage = null;
+  				res.render("settings", {seshName: sessionName, loggedIn: isLoggedIn, seshEmail: sessionEmail, error: errorMessage});
   			}
   		});
   	}
@@ -221,15 +226,12 @@ app.delete("/dashboard", function(req, res){
 
 			if(err || data.result.n == 0){
 				errorMessage = "Error. You're not allowed to delete that poll because you did not create it! Sorry.";
-				res.send(JSON.stringify({ error:errorMessage }));
-				//res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionMyPolls, error: errorMessage, displayDelete: true});	
-			//getUpdatedPollList
+				res.send({"error":errorMessage });
 			} //err
 			else{
 				successMessage = "Poll removed.";
 				errorMessage = "";
-				res.send(JSON.stringify({ success: successMessage  }));
-				//res.render("dashboard", {seshName: sessionName, loggedIn: isLoggedIn, polls: sessionMyPolls, success: successMessage, displayDelete: true});	
+				res.json({ "success": successMessage  });
 			} //!err
 		}); //Poll.remove
 });

@@ -32,7 +32,7 @@ input[type="submit"]{
     text-align: center;
     margin-bottom:2%;
 }
-#error, #success, #httpError{
+#error, #success, #httpError, #errorDelete, #successDelete{
     font-weight:bold;
     font-size:150%;
 }
