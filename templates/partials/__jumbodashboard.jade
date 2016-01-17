@@ -1,10 +1,15 @@
 extends ./__jumbotron.jade
 block button
     br
-    button#newPollButton New Poll
+    button#newPollButton
+        a(href="/newPoll") New Poll
     |    
-    button#existingPollButton My Polls
+    button#existingPollButton
+        a(href="/myPolls") My Polls
     br
     br
     button#communityPollButton 
-        a(href="/otherPolls") Community Polls
+        a(href="/otherPolls") Other Polls
+    |  
+    button#userButton
+        a(href="/users") Users

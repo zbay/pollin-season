@@ -2,14 +2,14 @@ mixin navigation(seshName)
   nav.navbar.navbar-default
     div.container-fluid
       div.navbar-header
-        a.navbar-brand(href='../dashboard') Pollin' Season
+        a.navbar-brand(href='../newPoll') Pollin' Season
       ul.nav.navbar-nav.navbar-left
         li
           a(href='../') Home
       ul.nav.navbar-nav.navbar-right
         if seshName
           li
-            a(href='../dashboard') Hello, #{seshName}
+            a(href='../myPolls') Hello, #{seshName}
           li  
             a(href='../settings') Settings
           li

@@ -13,7 +13,7 @@ app.get('/', function(req, res){
 	var path = req.path;
 	res.locals.path = path;
 	if(req.session.sessionID){
-		res.redirect("/dashboard");
+		res.redirect("/newPoll");
 	}
 	else{
 		req.session.reset();
@@ -26,7 +26,7 @@ app.get('/login', function(req, res){ //access login page
 		res.render('login', {seshName: req.session.sessionName, success: req.session.successMessage});
 	}
 	else{
-		res.redirect("/dashboard");
+		res.redirect("/newPoll");
 	}
 });
 
@@ -40,7 +40,7 @@ app.post('/login', function(req, res){ //attempt to log in with email/password
   			req.session.sessionEmail = email;
   			req.session.sessionName = doc.name;
   			req.session.sessionID = doc._id;
-  		res.redirect("/dashboard");
+  		res.redirect("/newPoll");
   		}
   		else{
     	req.session.errorMessage = "Error: incorrect email or password. Try again.";
@@ -67,13 +67,13 @@ app.get("/signup", function(req, res){
 	else{
 		req.session.successMessage = null;
 		req.sessionerrorMessage = null;
-		res.redirect("/dashboard");
+		res.redirect("/newPoll");
 	}
 });
 
 app.post('/signup', function(req, res){ //submit new account info
 	if(req.session.sessionID){
-		res.redirect("/dashboard");
+		res.redirect("/newPoll");
 	}
 else{
   var name = req.body.name;
@@ -155,7 +155,7 @@ app.post("/settings", function(req, res){ //submit changes to account info
 	}
 });
 
-app.get("/dashboard", function(req, res){
+app.get("/newPoll", function(req, res){
 	if(!req.session.sessionID){
 		req.session.reset();
 		res.redirect("/");
@@ -164,12 +164,12 @@ app.get("/dashboard", function(req, res){
 		req.session.successMessage = null;
 		req.session.errorMessage = null;
 		getMyPollList(req.session, function(){
-			res.render("dashboard", {seshName: req.session.sessionName, polls: sessionMyPolls});	
+			res.render("newPoll", {seshName: req.session.sessionName, polls: sessionMyPolls});	
 		});
 	} //else if not logged in
 });
 
-app.post("/dashboard", function(req, res){ //adding or deleting a poll from the user's account
+app.post("/newPoll", function(req, res){ //adding a poll from the user's account
 	    if(!req.session.sessionID){
 		res.redirect("/");
 	} //if logged in
@@ -189,23 +189,34 @@ app.post("/dashboard", function(req, res){ //adding or deleting a poll from the 
 		if(pollName.length > 1 && options.length > 1){
    			var newPoll = new Poll({"userID": req.session.sessionID, "creatorName": req.session.sessionName, "title": pollName, "options": optionsWithTallies});	
    			newPoll.save(function(){
-   			  		getMyPollList(req.session, function(){
-   			  			req.session.successMessage = "Poll added!";
-			res.render("dashboard", {seshName: req.session.sessionName, polls: sessionMyPolls, success: req.session.successMessage});
-		}); // if no error
+   			 req.session.successMessage = "Poll added!";
+			res.render("newPoll", {seshName: req.session.sessionName, success: req.session.successMessage});
    			});
 			}
    			else{
 		req.session.errorMessage = "Error: you submitted a poll with a title of inadequate length, a title that's already taken, or has an insufficient number of options. Try again.";
 		req.sessoin.successMessage = "";
 		getMyPollList(req.session, function(){
-			res.render("dashboardAJAX", {seshName: req.session.sessionName, polls: sessionMyPolls, error: req.session.errorMessage});
+			res.render("newPoll", {seshName: req.session.sessionName, error: req.session.errorMessage});
 		});
 			}
 	}
 	}
 	});
-app.delete("/dashboard", function(req, res){
+
+app.get("/myPolls", function(req, res){
+	if(!req.session.sessionID){
+		res.redirect("/");
+	}
+	else{
+		req.session.successMessage = null;
+		req.session.errorMessage = null;
+		getMyPollList(req.session, function(){
+			res.render("myPolls", {seshName: req.session.sessionName, polls: sessionMyPolls});	
+		});
+	}
+});
+app.delete("/myPolls", function(req, res){
 			var deleteThis = req.body.deleteID;
 			sessionMyPolls = [];
 			Poll.remove({"_id": deleteThis, "userID": req.session.sessionID}).lean().exec(function(err, data){

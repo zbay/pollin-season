@@ -1,0 +1,45 @@
+include ./partials/__header.jade
+include ./partials/__navbar.jade
+mixin navigation(seshName)
+include ./partials/__jumbodashboard.jade
+div#newPoll
+  form#newPollForm(method="POST")
+    h1.greenText New Poll
+    label
+      span.greenText Name your poll.
+      br
+      textarea#pollNameInput(name='pollName', placeholder='Favorite color?')
+    br
+    label#optionList
+      span.greenText Options
+      br
+      input.option(type='text', name='options[0]', placeholder='Red')
+      br.optionBreak
+      input.option(type='text', name='options[1]', placeholder='Blue')
+      br.optionBreak
+      input(name="action" value="addPoll" style="display:none;")
+    br
+    button#addOption Add an Option
+    button#removeOption Subtract an Option
+    br
+    br
+    input(type='submit', value='Save This Poll')
+script.
+    var optionsLength = 2;
+    $("#addOption").on("click", function(){
+    var input = $("<input type='text' name='options[" + optionsLength + "]' class='option'/><br class='optionBreak' />");
+    optionsLength++;
+    $("#optionList").append(input);
+    return false;
+    });
+    $("#removeOption").on("click", function(event){
+     optionsLength--;
+    $(".option").each(function(index, option){
+        option.setAttribute("name", "options[" + index + "]");
+    });
+    if(optionsLength > 1){
+        $(".option:last").remove();
+        $(".optionBreak:last").remove();
+    }
+    return false;
+    });
