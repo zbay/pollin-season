@@ -1,6 +1,6 @@
 include ./partials/__header.jade
 include ./partials/__navbar.jade
-mixin navigation(loggedIn, seshName)
+mixin navigation(seshName)
 include ./partials/__jumbodashboard.jade
 div#newPoll(style="#{ displayDelete ? 'display: none;' : 'display:block;' }")
   form#newPollForm(method="POST")

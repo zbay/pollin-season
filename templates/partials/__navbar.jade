@@ -1,4 +1,4 @@
-mixin navigation(loggedIn, seshName)
+mixin navigation(seshName)
   nav.navbar.navbar-default
     div.container-fluid
       div.navbar-header
@@ -7,7 +7,7 @@ mixin navigation(loggedIn, seshName)
         li
           a(href='../') Home
       ul.nav.navbar-nav.navbar-right
-        if loggedIn
+        if seshName
           li
             a(href='../dashboard') Hello, #{seshName}
           li  
