@@ -64,7 +64,7 @@ app.get("/signup", function(req, res){
 	}
 	else{
 		req.session.successMessage = null;
-		req.sessionerrorMessage = null;
+		req.session.errorMessage = null;
 		res.redirect("/newPoll");
 	}
 });
@@ -82,14 +82,25 @@ else{
   
   if(name && email && password && name.length > 2 && email.match(emailRegex) && password.length > 6){
    var newUser = new User({"name": name, "email":email, "password": hashedPassword}); 
-   newUser.save(function(){
-   User.findOne({"email": email}).lean().exec(function(err, data){
-   if(!err){
+   newUser.save(function(err, message){
+   	if(!err)
+   	{
+   User.findOne({"email": email}).lean().exec(function(findErr, data){
+   if(!findErr){
    req.session.successMessage = "Account successfully created!";
    req.session.errorMessage = null;
    res.redirect("/login");
    	}
+   	else{
+   		res.render("signup", {error:findErr});
+   	}
    });
+   	}
+   	else{
+   		req.session.successMessage = null;
+   		req.session.errorMessage = "An account already exists with this email address! Use another one.";
+   		res.render("signup", {error:req.session.errorMessage});
+   	}
    });
 
   }
