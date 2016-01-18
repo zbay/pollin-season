@@ -2,12 +2,13 @@ include ./partials/__header.jade
 script(type='text/javascript', src='https://www.google.com/jsapi')
 include ./partials/__navbar.jade
 mixin navigation(seshName)
-include ./partials/__jumbotron.jade
+include ./partials/__jumbodashboard.jade
 div#pollPresentation
     h3.greenText= poll.pollName
         h4 Poll created by:
             |  
-            span= poll.creatorName
+            span
+                a(href="/users/" + poll.userID)= poll.creatorName
     form#pollOptions(method="POST")
         each option in poll.pollOptions
             button.optionButton(name="incrementID", value=option._id, type="submit")= option.text 

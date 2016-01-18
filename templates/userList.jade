@@ -1,0 +1,15 @@
+include ./partials/__header.jade
+include ./partials/__navbar.jade
+mixin navigation(seshName)
+include ./partials/__jumbodashboard.jade
+div#userList
+    h2.greenText List of Users
+    br
+    if userList
+      table#userTable
+        tr
+          th.greenText User Name
+        for user in userList
+          tr
+            td
+              a(href="/users/"+user.id)= user.name
