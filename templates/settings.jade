@@ -3,6 +3,10 @@ include ./partials/__navbar.jade
 mixin navigation(seshName)
 include ./partials/__jumbotron.jade
 div#changeInfo
+  include ./partials/__success.jade
+  mixin successDisplay(success)
+  include ./partials/__error.jade
+  mixin errorDisplay(error)
   h3.greenText Update your account information
   form(method="POST")
     label
@@ -26,7 +30,3 @@ div#changeInfo
       input(type='password', name='newPassword')
     br
     input(type='submit', value='Update')
-include ./partials/__success.jade
-mixin successDisplay(success)
-include ./partials/__error.jade
-mixin errorDisplay(error)

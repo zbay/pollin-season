@@ -36,10 +36,6 @@ input[type="submit"]{
     font-weight:bold;
     font-size:150%;
 }
-#success{
-    color:green;
-}
-
 body{
     background-color:lightgray;
 }

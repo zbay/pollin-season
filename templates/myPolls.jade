@@ -2,6 +2,9 @@ include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(seshName)
 include ./partials/__jumbodashboard.jade
+include ./partials/__errorAJAX.jade
+include ./partials/__successAJAX.jade
+
 div#oldPolls
   if polls
       table#pollTable
@@ -25,7 +28,13 @@ script.
             method: "DELETE",
             url: "/myPolls",
             data: {deleteID: postID},
-            success: function(data){
+            success: function(returned){
+            if(returned.success){
+               $("#success").html(returned.success);
+            }
+            else{
+              $("#error").html(returned.error);
+            }
             }
         });
      });

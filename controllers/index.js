@@ -165,28 +165,35 @@ app.post("/newPoll", requireLogin, function(req, res){ //adding a poll from the 
 	var options = req.body.options;
 	var optionsWithTallies = [];
 	var userID;
+	if(pollName.length > 1 && options.length > 1){
 	async.each(options, appendOption, renderDash);
+	}
+	else{
+		req.session.errorMessage = "You submitted a poll with a title of inadequate length, a title that's already taken, or has an insufficient number of options. Try again.";
+		req.session.successMessage = null;
+		res.render("newPoll", {seshName: req.session.sessionName, error: req.session.errorMessage});
+	}
 	
 	function appendOption(option, callback){
+		var blankError = false;
+		if(option.length > 0){
 		var appendThis = {"text": option, "votes": []};
 		optionsWithTallies.push(appendThis);
+		}
 		return callback(null);
 	}
 	function renderDash(){
-		if(pollName.length > 1 && options.length > 1){
-   			var newPoll = new Poll({"userID": req.session.sessionID, "creatorName": req.session.sessionName, "title": pollName, "options": optionsWithTallies});	
+		if(optionsWithTallies.length > 1){
+			var newPoll = new Poll({"userID": req.session.sessionID, "creatorName": req.session.sessionName, "title": pollName, "options": optionsWithTallies});	
    			newPoll.save(function(){
-   			 req.session.successMessage = "Poll added!";
+   			req.session.successMessage = "Poll added!";
 			res.render("newPoll", {seshName: req.session.sessionName, success: req.session.successMessage});
    			});
-			}
-   			else{
-		req.session.errorMessage = "Error: you submitted a poll with a title of inadequate length, a title that's already taken, or has an insufficient number of options. Try again.";
-		req.sessoin.successMessage = "";
-		getMyPollList(req.session, function(){
+		}
+		else{
+			req.session.errorMessage = "You did not submit enough options containing text! Try again.";
 			res.render("newPoll", {seshName: req.session.sessionName, error: req.session.errorMessage});
-		});
-			}
+		}
 	}
 	});
 
@@ -203,8 +210,8 @@ app.delete("/myPolls", requireLogin, function(req, res){
 			Poll.remove({"_id": deleteThis, "userID": req.session.sessionID}).lean().exec(function(err, data){
 
 			if(err || data.result.n == 0){
-				req.session.errorMessage = "Error. You're not allowed to delete that poll because you did not create it! Sorry.";
-				res.send({"error": req.session.errorMessage });
+				req.session.errorMessage = "Error. This poll has already been deleted.";
+				res.json({"error": req.session.errorMessage });
 			} //err
 			else{
 				req.session.successMessage = "Poll removed.";

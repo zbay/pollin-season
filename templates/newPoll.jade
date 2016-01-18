@@ -2,6 +2,12 @@ include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(seshName)
 include ./partials/__jumbodashboard.jade
+if error
+  include ./partials/__error.jade
+  mixin errorDisplay(error)
+if success
+  include ./partials/__success.jade
+  mixin successDisplay(success)
 div#newPoll
   form#newPollForm(method="POST")
     h1.greenText New Poll
