@@ -10,8 +10,6 @@ var sessionMyPolls = [];
 var sessionCommPolls = [];
 
 app.get('/', function(req, res){
-	var path = req.path;
-	res.locals.path = path;
 	if(req.session.sessionID){
 		res.redirect("/newPoll");
 	}
@@ -23,7 +21,7 @@ app.get('/', function(req, res){
 
 app.get('/login', function(req, res){ //access login page
 	if(!req.session.sessionID){
-		res.render('login', {seshName: req.session.sessionName, success: req.session.successMessage});
+		res.render('login', {});
 	}
 	else{
 		res.redirect("/newPoll");
@@ -104,24 +102,13 @@ else{
 
 });
 
-app.get("/settings", function(req, res){
-	if(!req.session.sessionID){
-		req.session.reset();
-		res.redirect("/");
-	}
-	else{
+app.get("/settings", requireLogin, function(req, res){
 		req.session.successMessage = null;
 		req.session.errorMessage = null;
 		res.render("settings", {seshName: req.session.sessionName, seshEmail: req.session.sessionEmail});
-	}
 });
 
-app.post("/settings", function(req, res){ //submit changes to account info
-    if(!req.session.sessionID){
-    	req.session.reset();
-		res.redirect("/");
-	}
-	else{
+app.post("/settings", requireLogin, function(req, res){ //submit changes to account info
 		var newName = req.body.name;
 		var newEmail = req.body.email;
 		var currentPassword = req.body.currentPassword;
@@ -152,28 +139,17 @@ app.post("/settings", function(req, res){ //submit changes to account info
     	res.render("settings", {seshName: req.session.sessionName, seshEmail: req.session.sessionEmail, error: req.session.errorMessage});
     }
   });
-	}
 });
 
-app.get("/newPoll", function(req, res){
-	if(!req.session.sessionID){
-		req.session.reset();
-		res.redirect("/");
-	} //if not logged in
-	else{
+app.get("/newPoll", requireLogin, function(req, res){
 		req.session.successMessage = null;
 		req.session.errorMessage = null;
 		getMyPollList(req.session, function(){
 			res.render("newPoll", {seshName: req.session.sessionName, polls: sessionMyPolls});	
 		});
-	} //else if not logged in
 });
 
-app.post("/newPoll", function(req, res){ //adding a poll from the user's account
-	    if(!req.session.sessionID){
-		res.redirect("/");
-	} //if logged in
-	else{
+app.post("/newPoll", requireLogin, function(req, res){ //adding a poll from the user's account
 	var pollName = req.body.pollName;
 	var options = req.body.options;
 	var optionsWithTallies = [];
@@ -201,22 +177,16 @@ app.post("/newPoll", function(req, res){ //adding a poll from the user's account
 		});
 			}
 	}
-	}
 	});
 
-app.get("/myPolls", function(req, res){
-	if(!req.session.sessionID){
-		res.redirect("/");
-	}
-	else{
+app.get("/myPolls", requireLogin, function(req, res){
 		req.session.successMessage = null;
 		req.session.errorMessage = null;
 		getMyPollList(req.session, function(){
 			res.render("myPolls", {seshName: req.session.sessionName, polls: sessionMyPolls});	
 		});
-	}
 });
-app.delete("/myPolls", function(req, res){
+app.delete("/myPolls", requireLogin, function(req, res){
 			var deleteThis = req.body.deleteID;
 			sessionMyPolls = [];
 			Poll.remove({"_id": deleteThis, "userID": req.session.sessionID}).lean().exec(function(err, data){
@@ -233,25 +203,14 @@ app.delete("/myPolls", function(req, res){
 		}); //Poll.remove
 });
 
-app.get("/polls/:id", function(req, res){
-	if(!req.session.sessionID){
-		req.session.reset();
-		res.redirect("/");
-	}
-	else{
+app.get("/polls/:id", requireLogin, function(req, res){
 		Poll.findOne({"_id": req.params.id}).lean().exec(function(err, doc) {
 		var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options, "creatorName": doc.creatorName};
 		res.render("poll", {seshName: req.session.sessionName, poll: thePoll, pollID: req.params.id, success:req.session.successMessage});
 		});
-	}
 }); //get poll
 
-app.post("/polls/:id", function(req, res){  //register a vote for a poll's option
-	if(!req.session.sessionID){
-		req.session.reset();
-		res.redirect("/");
-	}
-	else{
+app.post("/polls/:id", requireLogin, function(req, res){  //register a vote for a poll's option
 		var pollID = req.params.id;
 		var optionID = req.body.incrementID;
 	/*	Poll.findOne({"_id": pollID, "options._id": optionID, sessionID: {$in: "options.$.votes"}}).lean().exec(function(err, doc){
@@ -270,40 +229,22 @@ app.post("/polls/:id", function(req, res){  //register a vote for a poll's optio
 				res.redirect("/polls/" + pollID);
 			}
 		});
-	}
 }); //post poll
 
-app.get("/otherPolls", function(req, res){
-	if(!req.session.sessionID){
-		req.session.reset();
-		res.redirect("/");
-	}
-	else{
+app.get("/otherPolls", requireLogin, function(req, res){
 		getCommunityPollList(req.session, function(){
 			res.render("otherPolls",  {seshName: req.session.sessionName, polls: sessionCommPolls});	
 		});
-	}
 });
 
-app.get("/editPoll/:id", function(req, res) {
-   if(!req.session.sessionID){
-   	req.session.reset();
-		res.redirect("/");
-	}
-	else{
+app.get("/editPoll/:id", requireLogin, function(req, res) {
 		Poll.findOne({"_id": req.params.id, "userID": req.session.sessionID}).lean().exec(function(err, doc) {
 		var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options};
 		res.render("editPoll", {seshName: req.session.sessionName, poll: thePoll, pollID: req.params.id, success:req.session.successMessage});
 		});
-	}
 });
 
-app.post("/editPoll/:id", function(req, res){  //register a vote for a poll's option
-	if(!req.session.sessionID){
-		req.session.reset();
-		res.redirect("/");
-	}
-	else{
+app.post("/editPoll/:id", requireLogin, function(req, res){  //register a vote for a poll's option
 		var pollID = req.params.id;
 		var pollName = req.body.pollName;
 		var options = req.body.options;
@@ -331,7 +272,6 @@ app.post("/editPoll/:id", function(req, res){  //register a vote for a poll's op
 			res.redirect("editPoll/" + pollID);
 		});
 			}
-	}
 	}
 }); //post poll
 
@@ -362,4 +302,12 @@ function getCommunityPollList(session, callback){
 			callback();
 		});
 }
+function requireLogin (req, res, next) {
+  if (!req.session.sessionID) { //if no user is signed in
+ 	req.session.reset();
+    res.redirect('/login');
+  } else {
+    next();
+  }
+};
 }
