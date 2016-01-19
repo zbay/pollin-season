@@ -1,7 +1,13 @@
 include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(seshName)
-include ./partials/__jumbotron.jade
+include ./partials/__jumbodashboard.jade
+if error
+  include ./partials/__error.jade
+  mixin errorDisplay(error)
+if success
+  include ./partials/__success.jade
+  mixin successDisplay(success)
 div#editPoll
   form#editPollForm(method="POST")
     h1.greenText Edit Poll
@@ -15,7 +21,7 @@ div#editPoll
       span.greenText Options
       br
       each option, index in poll.pollOptions
-        input.option(type='text', name='options]' + index + "]", value=option.text)
+        input.option(type='text', name='options[' + index + "]", value=option.text)
         br.optionBreak
     br
     button#addOption Add an Option
@@ -25,12 +31,6 @@ div#editPoll
     div Warning! Editing this poll will erase all of its prior votes.
     input(type='submit', value='Save Changes')
 br
-if error
-  include ./partials/__error.jade
-  mixin errorDisplay(error)
-if success
-  include ./partials/__success.jade
-  mixin successDisplay(success)
 script.
     var optionsLength = !{poll.pollOptions.length};
     console.log(optionsLength);

@@ -1,5 +1,5 @@
-module.exports.set = function(app) {
-var mongoose = require('mongoose');
+function routers(app){
+    var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
 var async = require('async');
 var User = require("../dbmodels/user.js");
@@ -171,7 +171,6 @@ app.post("/newPoll", requireLogin, function(req, res){ //adding a poll from the 
 	}
 	
 	function appendOption(option, callback){
-		var blankError = false;
 		if(option.length > 0){
 		var appendThis = {"text": option, "votes": []};
 		optionsWithTallies.push(appendThis);
@@ -198,7 +197,6 @@ app.get("/myPolls", requireLogin, function(req, res){
 		req.session.errorMessage = null;
 		getMyPollList(req.session, function(){
 			res.render("myPolls", {seshName: req.session.sessionName, polls: req.session.myPolls});	
-			console.log(req.session.myPolls);
 		});
 });
 app.delete("/myPolls", requireLogin, function(req, res){
@@ -226,9 +224,6 @@ app.get("/polls/:id", requireLogin, function(req, res){
 app.post("/polls/:id", requireLogin, function(req, res){  //register a vote for a poll's option
 		var pollID = req.params.id;
 		var optionID = req.body.incrementID;
-	/*	Poll.findOne({"_id": pollID, "options._id": optionID, sessionID: {$in: "options.$.votes"}}).lean().exec(function(err, doc){
-			console.log(err);
-		});*/
 		Poll.update({"_id": pollID, "options._id": optionID}, {$addToSet: {"options.$.votes": req.session.sessionID}}).lean().exec(function(err, doc){
 			req.session.errorMessage=null;
 			if(doc.nModified == 0){
@@ -246,7 +241,7 @@ app.post("/polls/:id", requireLogin, function(req, res){  //register a vote for 
 
 app.get("/otherPolls", requireLogin, function(req, res){
 		getCommunityPollList(req.session, function(){
-			res.render("otherPolls",  {seshName: req.session.sessionName, polls: req.session.commPolls});	
+			res.render("otherPolls",  {seshName: req.session.sessionName, polls: req.session.commPolls, error: req.session.errorMessage});	
 		});
 });
 
@@ -266,12 +261,14 @@ app.post("/editPoll/:id", requireLogin, function(req, res){  //register a vote f
 		async.each(options, appendOption, renderDash);
 	
 	function appendOption(option, callback){
+		if(option.length > 0){
 		var appendThis = {"text": option, "votes": []};
 		optionsWithTallies.push(appendThis);
+		}
 		return callback(null);
 	}
 	function renderDash(){
-			if(pollName.length > 1 && options.length > 1){
+			if(pollName.length > 1 && options.length > 1 && optionsWithTallies.length > 1){
 				req.session.errorMessage = null;
 				req.session.successMessage = "Poll updated!";
 				Poll.update({"_id":pollID}, {"title": pollName, "options": optionsWithTallies}, function(){
@@ -311,7 +308,7 @@ app.use(function(req, res) {
 });*/
 
 function getMyPollList(session, callback){
-		var myPolls = [];
+		session.myPolls = [];
 		var userPolls = Poll.find({"userID": session.sessionID}).stream();
 		userPolls.on("data", function(pollData){
 			session.myPolls.push({"id": pollData._id, "name": pollData.title});
@@ -352,3 +349,4 @@ function requireLogin (req, res, next) {
   }
 };
 }
+module.exports = routers;

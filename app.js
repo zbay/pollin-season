@@ -7,7 +7,7 @@ var express = require('express');
 var app = express();
 var mongo = require('mongodb');
 var bodyParser = require('body-parser');
-var controller = require('./controllers');
+var routes = require('./routes');
 var session = require('client-sessions');
 var dotenv = require('dotenv').load();
 
@@ -35,7 +35,7 @@ app.use(session({
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/templates');
 
-controller.set(app);  
+routes.set(app); 
 
 app.listen(process.env.PORT || 8080, function(){
 	console.log("The frontend server is running on port 8080.");
