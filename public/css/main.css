@@ -42,7 +42,7 @@ body{
 .greenText{
     color:green;
 }
-#pollTable, #userTable{
+#pollTable, #userTable, #sharedPollTable{
     margin-left:auto;
     margin-right:auto;
     text-align:center;

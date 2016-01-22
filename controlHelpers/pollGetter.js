@@ -1,19 +1,26 @@
 module.exports = function(){
 var getter = {};
-        var mongoose = require('mongoose');
+var async = require('async');
+var mongoose = require('mongoose');
      var Poll = require(process.cwd() + "/dbmodels/poll.js"); Poll = mongoose.model("Poll");
      var Shared = require(process.cwd() + "/dbmodels/shared.js"); Shared = mongoose.model("Shared");
          getter.getSharedPollList = function(session, callback){
             session.sharedPolls = [];
-	    	var shared = Shared.find({"sharee": session.sessionID}).stream();
-		    shared.on("data", function(pollData){
-		    Poll.find({"_id": pollData.pollId}, function(err, data){
-		        session.sharedPolls.push({"id": data._id, "name": data.title});
-		    });
-		    });
-		    shared.on("end", function(){
-			    callback();
+	    	Shared.find({"sharee": session.sessionID}, function(err, data){
+				async.each(data, appendPoll, returnPolls);	    		
 	    	});
+	    	
+	    	function appendPoll(poll, callback){
+	    		Poll.findOne({"_id": poll.pollID}, function(err, doc){
+		    	if(doc && !err){
+		    		session.sharedPolls.push({"id": doc._id, "name": doc.title, "userID": doc.userID, "userName": doc.creatorName});	
+		    	}
+		    	return callback();
+		    });
+	    	}
+	    	function returnPolls(){
+	    		callback();
+	    	}
          }
             getter.getUserPollList = function(session, userID, isMine, callback){
             session.visitedUserPolls = [];

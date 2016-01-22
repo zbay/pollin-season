@@ -14,7 +14,7 @@ app.get("/myPolls", requireLogin, function(req, res){
 app.get("/sharedPolls", requireLogin, function(req, res){
 		req.session.successMessage = null;
 		req.session.errorMessage = null;
-		pollGetter.pollGetter.getSharedPollList(req.session, function(){
+		pollGetter.getSharedPollList(req.session, function(){
 			res.render("sharedPolls", {seshName: req.session.sessionName, sharedPolls: req.session.sharedPolls});	
 		});
 });
