@@ -5,7 +5,7 @@ module.exports = function(app) {
 
 app.get('/login', function(req, res){ //access login page
 	if(!req.session.sessionID){
-		res.render('login', {});
+		res.render('login', {success: req.session.successMessage});
 	}
 	else{
 		res.redirect("/newPoll");

@@ -58,7 +58,7 @@ td{
 th, td{
     border: 2px solid green;
 }
-#pollPresentation, #communityPolls, #signupform{
+#pollPresentation, #communityPolls, #signupform, #loginform{
     margin-right:auto;
     margin-left:auto;
     text-align:center;

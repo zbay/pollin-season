@@ -1,4 +1,4 @@
-module.exports = function(){ //http://liangzan.net/blog/blog/2012/06/04/how-to-use-exports-in-nodejs/
+module.exports = function(){
 var getter = {};
         var mongoose = require('mongoose');
      var Poll = require(process.cwd() + "/dbmodels/poll.js"); Poll = mongoose.model("Poll");
