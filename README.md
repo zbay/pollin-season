@@ -1,4 +1,4 @@
-Pollin' Season Version 1.0
+Pollin' Season Version 1.1
 
 Make, take, and view custom polls!
 
@@ -6,11 +6,11 @@ This project is running at the following URL: https://pollin-season.herokuapp.co
 
 I am not 100% finished with this project. Here's what I hope to tinker on in the future:
 
-1. Secure session cookies
+~~1. Secure session cookies~~
 
-2. Code organization that more-or-less follows best practices
+2. Code organization that more closely best practices
 
-3. Exhaustive error handling
+3. 100% exhaustive error handling
 
 4. Pagination for large lists of polls
 
@@ -18,8 +18,8 @@ I am not 100% finished with this project. Here's what I hope to tinker on in the
 
 6. Use React.JS for views
 
-7. Minimize code redundancy
+7. Further reduce code redundancy
 
-8. Enable poll watchlists and a sharing feature
+~~8. Enable poll watchlists and a sharing feature~~
 
 I disregarded certain parts of the FreeCodeCamp project requirements. Namely, I chose to restrict poll access to authenticated users. Any authenticated user can vote on any poll, but only the poll's creator can edit or remove a given poll.
