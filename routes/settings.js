@@ -1,6 +1,11 @@
-function settings(app)
-{
-    app.get("/settings", requireLogin, function(req, res){
+module.exports = function(app) {
+	var bcrypt = require("bcrypt");
+    var mongoose = require('mongoose');
+    var User = require(process.cwd() + "/dbmodels/user.js");
+    User = mongoose.model("User");
+    var requireLogin = require(process.cwd() + "/controlHelpers/requireLogin.js");
+    
+ app.get("/settings", requireLogin, function(req, res){
 		req.session.successMessage = null;
 		req.session.errorMessage = null;
 		res.render("settings", {seshName: req.session.sessionName, seshEmail: req.session.sessionEmail});
@@ -37,6 +42,5 @@ app.post("/settings", requireLogin, function(req, res){ //submit changes to acco
     	res.render("settings", {seshName: req.session.sessionName, seshEmail: req.session.sessionEmail, error: req.session.errorMessage});
     }
   });
-});   
+});
 }
-module.exports = settings;

@@ -10,6 +10,7 @@ div#pollPresentation
             span
                 a(href="/users/" + poll.userID)= poll.creatorName
     form#pollOptions(method="POST")
+        input(name="action" value="castVote" style="display:none;")
         each option in poll.pollOptions
             button.optionButton(name="incrementID", value=option._id, type="submit")= option.text 
             |  
@@ -27,6 +28,14 @@ if success
 br
 div#poll_chart(align="center")
 br
+div#sharePoll
+    h3 Share this poll
+    div Paste the URL of a user profile here and we'll share this poll with them!
+        form#shareForm(method="POST")
+            input(name="userURL" placeholder="https://pollin-season.herokuapp.com/users/569824bc80d1d60300865f64")
+            input(name="action" value="sharePoll" style="display:none;")
+            input(type="submit" value="Share")
+            
 script.
     var poll = !{JSON.stringify(poll)};
     google.load('visualization', '1.0', {'packages':['corechart']});

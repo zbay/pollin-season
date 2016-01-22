@@ -1,154 +1,16 @@
 function routers(app){
-    var mongoose = require('mongoose');
+	
+var signInOrOut = require("./signInOrOut.js"); signInOrOut(app);
+var home = require("./home.js"); home(app);
+var signup = require("./signup.js"); signup(app);
+var settings = require("./settings.js"); settings(app);
 var bcrypt = require('bcrypt');
 var async = require('async');
-var User = require("../dbmodels/user.js");
-var Poll = require("../dbmodels/poll.js");
-User = mongoose.model("User");
-Poll = mongoose.model("Poll");
-
-app.get('/', function(req, res){
-	if(req.session.sessionID){
-		res.redirect("/newPoll");
-	}
-	else{
-		req.session.reset();
-		res.render('index', {seshName: req.session.sessionName});	
-	}
-});
-
-app.get('/login', function(req, res){ //access login page
-	if(!req.session.sessionID){
-		res.render('login', {});
-	}
-	else{
-		res.redirect("/newPoll");
-	}
-});
-
-app.post('/login', function(req, res){ //attempt to log in with email/password
-  var email = req.body.email;
-  var password = req.body.password;
-  User.findOne({"email": email}, function(err, doc){
-  	if(!err && doc != null){
-  		var hashedPassword = doc.password;
-  		if(bcrypt.compareSync(password, hashedPassword)){
-  			req.session.sessionEmail = email;
-  			req.session.sessionName = doc.name;
-  			req.session.sessionID = doc._id;
-  		res.redirect("/newPoll");
-  		}
-  		else{
-    	req.session.errorMessage = "Error: incorrect email or password. Try again.";
-    	req.session.successMessage = null;
-    	res.render("login", {seshName: req.session.sessionName, error: req.session.errorMessage});
-    }
-  	}
-    else{
-    	req.session.errorMessage = "Error: incorrect email or password. Try again.";
-    	res.render("login", {seshName: req.session.sessionName, error: req.session.errorMessage});
-    }
-  });
-});
-
-app.get('/logout', function(req, res){ //sign out
-	req.session.reset();
-	res.redirect("/");
-});
-
-app.get("/signup", function(req, res){
-	if(!req.session.sessionID){
-		res.render('signup', {});
-	}
-	else{
-		req.session.successMessage = null;
-		req.session.errorMessage = null;
-		res.redirect("/newPoll");
-	}
-});
-
-app.post('/signup', function(req, res){ //submit new account info
-	if(req.session.sessionID){
-		res.redirect("/newPoll");
-	}
-else{
-  var name = req.body.name;
-  var email = req.body.email;
-  var password = req.body.password;
-  var hashedPassword = bcrypt.hashSync(password, 10);
-  var emailRegex = /@/;
-  
-  if(name && email && password && name.length > 2 && email.match(emailRegex) && password.length > 6){
-   var newUser = new User({"name": name, "email":email, "password": hashedPassword}); 
-   newUser.save(function(err, message){
-   	if(!err)
-   	{
-   User.findOne({"email": email}).lean().exec(function(findErr, data){
-   if(!findErr){
-   req.session.successMessage = "Account successfully created!";
-   req.session.errorMessage = null;
-   res.redirect("/login");
-   	}
-   	else{
-   		res.render("signup", {error:findErr});
-   	}
-   });
-   	}
-   	else{
-   		req.session.successMessage = null;
-   		req.session.errorMessage = "An account already exists with this email address! Use another one.";
-   		res.render("signup", {error:req.session.errorMessage});
-   	}
-   });
-
-  }
-  else{
-  	req.session.errorMessage = "Error: invalid information. Enter a valid email, a name longer than 2 characters, and a password longer than 6 characters.";
-  	req.session.successMessage = null;
-  	res.render('signup', {seshName: req.session.sessionName, error: req.session.errorMessage});
-  }
-}
-
-});
-
-app.get("/settings", requireLogin, function(req, res){
-		req.session.successMessage = null;
-		req.session.errorMessage = null;
-		res.render("settings", {seshName: req.session.sessionName, seshEmail: req.session.sessionEmail});
-});
-
-app.post("/settings", requireLogin, function(req, res){ //submit changes to account info
-		var newName = req.body.name;
-		var newEmail = req.body.email;
-		var currentPassword = req.body.currentPassword;
-		var newPassword = req.body.newPassword;
-		
-		User.findOne({"email": req.session.sessionEmail}).lean().exec(function(err, doc){
-			var hashedPassword = doc.password;
-  	if(doc && !err && newPassword.length > 6 && bcrypt.compareSync(currentPassword, hashedPassword)){
-  		var userID = doc._id;
-  		User.update({"_id": req.session.sessionID}, {"$set": {"password": bcrypt.hashSync(newPassword, 10), "name": newName, "email": newEmail}}, function(err, data){
-  			if(!err){
-  					req.session.sessionEmail = newEmail;
-  					req.session.sessionName = newName;
-  					req.session.successMessage = "Info successfully changed!";
-  					req.session.errorMessage = null;
-  					res.render("settings", {seshName: req.session.sessionName, seshEmail: req.session.sessionEmail, success: req.session.successMessage});
-  			}
-  			else{
-  				req.session.errorMessage = "Error. That email address is associated with another account. Use a different one.";
-  				req.session.successMessage = null;
-  				res.render("settings", {seshName: req.session.sessionName, seshEmail: req.session.sessionEmail, error: req.session.errorMessage});
-  			}
-  		});
-  	}
-    else{
-    	req.session.errorMessage = "Error: unsuccessful password change. Make sure you entered your old one correctly, and that the new one is at least 7 characters in length.";
-    	req.session.successMessage = null;
-    	res.render("settings", {seshName: req.session.sessionName, seshEmail: req.session.sessionEmail, error: req.session.errorMessage});
-    }
-  });
-});
+var mongoose = require('mongoose');
+var requireLogin = require(process.cwd() + "/controlHelpers/requireLogin.js");
+var User = require(process.cwd() + "/dbmodels/user.js"); User = mongoose.model("User");
+var Poll = require(process.cwd() + "/dbmodels/poll.js"); Poll = mongoose.model("Poll");
+var Shared = require(process.cwd() + "/dbmodels/shared.js"); Shared = mongoose.model("Shared");
 
 app.get("/newPoll", requireLogin, function(req, res){
 		req.session.successMessage = null;
@@ -199,6 +61,14 @@ app.get("/myPolls", requireLogin, function(req, res){
 			res.render("myPolls", {seshName: req.session.sessionName, polls: req.session.myPolls});	
 		});
 });
+app.get("/sharedPolls", requireLogin, function(req, res){
+		req.session.successMessage = null;
+		req.session.errorMessage = null;
+		getSharedPollList(req.session, function(){
+			res.render("sharedPolls", {seshName: req.session.sessionName, sharedPolls: req.session.sharedPolls});	
+		});
+});
+
 app.delete("/myPolls", requireLogin, function(req, res){
 			var deleteThis = req.body.deleteID;
 			Poll.remove({"_id": deleteThis, "userID": req.session.sessionID}).lean().exec(function(err, data){
@@ -217,12 +87,13 @@ app.delete("/myPolls", requireLogin, function(req, res){
 app.get("/polls/:id", requireLogin, function(req, res){
 		Poll.findOne({"_id": req.params.id}).lean().exec(function(err, doc) {
 		var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options, "creatorName": doc.creatorName, "userID": doc.userID};
-		res.render("poll", {seshName: req.session.sessionName, poll: thePoll, pollID: req.params.id, success:req.session.successMessage});
+		res.render("poll", {seshName: req.session.sessionName, poll: thePoll, pollID: req.params.id, success:req.session.successMessage, error:req.session.errorMessage});
 		});
 }); //get poll
 
 app.post("/polls/:id", requireLogin, function(req, res){  //register a vote for a poll's option
-		var pollID = req.params.id;
+var pollID = req.params.id;
+if(req.body.action == "castVote"){
 		var optionID = req.body.incrementID;
 		Poll.update({"_id": pollID, "options._id": optionID}, {$addToSet: {"options.$.votes": req.session.sessionID}}).lean().exec(function(err, doc){
 			req.session.errorMessage=null;
@@ -237,6 +108,25 @@ app.post("/polls/:id", requireLogin, function(req, res){  //register a vote for 
 				res.redirect("/polls/" + pollID);
 			}
 		});
+}
+else{
+    var userURL = req.body.userURL;
+    var userID = userURL.slice(userURL.lastIndexOf("/")+1);
+    console.log(userID);
+    var newShare = new Shared({"sharer": req.session.sessionName, "sharee": userID, "pollID": pollID});
+    newShare.save(function(err, data){
+        if(err){
+            req.session.successMessage = null;
+            req.session.errorMessage = "You entered an invalid URL for sharing. Try again.";
+        }
+        else{
+            req.session.successMessage = "Poll successfully shared!";
+            req.session.errorMessage = null;
+        }
+        res.redirect("/polls/" + pollID);
+    });
+}
+
 }); //post poll
 
 app.get("/otherPolls", requireLogin, function(req, res){
@@ -286,8 +176,27 @@ app.post("/editPoll/:id", requireLogin, function(req, res){  //register a vote f
 app.get("/users/:id", requireLogin, function(req, res){
 	var userID = req.params.id;
 	getUserPollList(req.session, userID, function(){
-		res.render("user", {seshName: req.session.sessionName, userPolls:req.session.visitedUserPolls, userName: req.session.visitedUserName});
+	    User.findOne({"_id": userID}, function(err, data){
+	       res.render("user", {seshName: req.session.sessionName, userPolls:req.session.visitedUserPolls, userName: data.name, success:req.session.successMessage, error: req.session.errorMessage}); 
+	    });
 	});
+});
+app.post("/users/:id", requireLogin, function(req, res){
+    var userID = req.params.id;
+    var pollURL = req.body.pollURL;
+    var pollID = pollURL.slice(pollURL.lastIndexOf("/")+1);
+    var newShare = new Shared({"sharer": req.session.sessionName, "sharee": userID, "pollID": pollID});
+    newShare.save(function(err, data){
+        if(err){
+            req.session.successMessage = null;
+            req.session.errorMessage = "You entered an invalid URL for sharing. Try again.";
+        }
+        else{
+            req.session.successMessage = "Poll successfully shared!";
+            req.session.errorMessage = null;
+        }
+        res.redirect("/users/" + userID);
+});
 });
 app.get("/userList", requireLogin, function(req, res){
 		var userList = User.find({}).limit(100).stream();
@@ -317,14 +226,23 @@ function getMyPollList(session, callback){
 			callback();
 		});
 }
+function getSharedPollList(session, callback){
+		session.sharedPolls = [];
+		var shared = Shared.find({"sharee": session.sessionID}).stream();
+		shared.on("data", function(pollData){
+		    Poll.find({"_id": pollData.pollId}, function(err, data){
+		        session.sharedPolls.push({"id": data._id, "name": data.title});
+		    });
+		});
+		shared.on("end", function(){
+			callback();
+		});
+}
 function getUserPollList(session, userID, callback){
 		session.visitedUserPolls = [];
 		var userPolls = Poll.find({"userID": userID}).stream();
 		userPolls.on("data", function(pollData){
 			session.visitedUserPolls.push({"id": pollData._id, "name": pollData.title});
-			if(!session.visitedUserName){
-				session.visitedUserName = pollData.creatorName;
-			}
 		});
 		userPolls.on("end", function(){
 			callback();
@@ -340,13 +258,5 @@ function getCommunityPollList(session, callback){
 			callback();
 		});
 }
-function requireLogin (req, res, next) {
-  if (!req.session.sessionID) { //if no user is signed in
- 	req.session.reset();
-    res.redirect('/login');
-  } else {
-    next();
-  }
-};
 }
 module.exports = routers;

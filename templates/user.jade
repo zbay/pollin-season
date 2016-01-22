@@ -2,6 +2,12 @@ include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(seshName)
 include ./partials/__jumbodashboard.jade
+if error
+  include ./partials/__error.jade
+  mixin errorDisplay(error)
+if success
+  include ./partials/__success.jade
+  mixin successDisplay(success)
 div#userPolls
     h2.greenText Polls By: #{userName}
     br
@@ -13,3 +19,9 @@ div#userPolls
           tr
             td
                 a(href="/polls/"+poll.id)= poll.name
+div#sharePoll
+    h3 Share with this user
+    div Paste the URL of a poll here and we'll share it with this user!
+        form#shareForm(method="POST")
+            input(name="pollURL" placeholder="https://votingapp-zbay.c9users.io/polls/569c1d1fbd7edcdf106e26e6")
+            input(type="submit" value="Share")

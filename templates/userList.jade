@@ -2,6 +2,9 @@ include ./partials/__header.jade
 include ./partials/__navbar.jade
 mixin navigation(seshName)
 include ./partials/__jumbodashboard.jade
+if error
+  include ./partials/__error.jade
+  mixin errorDisplay(error)
 div#userList
     h2.greenText List of Users
     br

@@ -4,33 +4,29 @@ mixin navigation(seshName)
 include ./partials/__jumbodashboard.jade
 include ./partials/__errorAJAX.jade
 include ./partials/__successAJAX.jade
-
-div#oldPolls
-  h2.greenText Polls I Made
-  if polls
-      table#pollTable
-        tr
-          th.greenText Poll Question
-          th.greenText Edit Poll
-          th.greenText Remove Poll
-        for poll in polls
-          tr
-            td
-                a(href="/polls/"+poll.id)= poll.name
-            td
-                a(href="/editPoll/"+poll.id) Edit
-            td
-                button.deletePollButton(name="deleteID" value=poll.id) Delete
+div#sharedPolls
+    h2.greenText Polls Shared With Me
     br
-//a(href="/sharedPolls") Clich here to see the polls shared with me by other users.
-
+    table#sharedPollTable
+      tr
+          th.greenText Poll Question
+          th.greenText Created By
+          th.greenText Delete?
+      for poll in sharedPolls
+        tr
+          td
+            a(href="/polls/"+poll.id)= poll.name
+          td
+            a(href="/users/"+poll.userID)= poll.userName
+          td
+            button.deletePollButton(name="deleteID" value=poll.id) Delete
 script.
     $(".deletePollButton").on("click", function(){
         var postID = $(this).attr("value");
         $(this).parent().parent().remove();
         $.ajax({
             method: "DELETE",
-            url: "/myPolls",
+            url: "/sharedPolls",
             data: {deleteID: postID},
             success: function(returned){
             if(returned.success){
