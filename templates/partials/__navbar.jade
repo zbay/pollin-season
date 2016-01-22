@@ -8,8 +8,21 @@ mixin navigation(seshName)
           a(href='../') Home
       ul.nav.navbar-nav.navbar-right
         if seshName
-          li
-            a(href='../myPolls') Hello, #{seshName}
+          li.dropdown
+            a.dropdown-toggle(data-toggle="dropdown" href='#') Hello, #{seshName}
+              |  
+              span.caret
+            ul.dropdown-menu
+              li
+                a(href="../newPoll") New Poll
+              li
+                a(href="../myPolls") My Polls
+              li
+                a(href="../sharedPolls") Polls Shared With Me
+              li
+                a(href="../otherPolls") Community Polls
+              li
+                a(href="../userList") Site Users
           li  
             a(href='../settings') Settings
           li
