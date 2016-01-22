@@ -33,4 +33,10 @@ app.delete("/myPolls", requireLogin, function(req, res){
 			} //!err
 		}); //Poll.remove
 });
+
+app.get("/otherPolls", requireLogin, function(req, res){
+		pollGetter.getCommunityPollList(req.session, function(){
+			res.render("otherPolls",  {seshName: req.session.sessionName, polls: req.session.commPolls, error: req.session.errorMessage});	
+		});
+});
 }

@@ -1,8 +1,7 @@
 module.exports = function(app) {
     var bcrypt = require('bcrypt');
      var mongoose = require('mongoose');
-     var User = require("../dbmodels/user.js");
-     User = mongoose.model("User");
+     var User = require("../dbmodels/user.js"); User = mongoose.model("User");
 
 app.get('/login', function(req, res){ //access login page
 	if(!req.session.sessionID){

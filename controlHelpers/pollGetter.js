@@ -20,7 +20,6 @@ var getter = {};
             session.myPolls = [];
 		    var userPolls = Poll.find({"userID": userID}).stream();
 		    userPolls.on("data", function(pollData){
-		        console.log(pollData);
 		        if(isMine){
 		            session.myPolls.push({"id": pollData._id, "name": pollData.title});
 		        }
