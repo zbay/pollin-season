@@ -9,7 +9,7 @@ var mongo = require('mongodb');
 var bodyParser = require('body-parser');
 var routes = require('./routes');
 var session = require('client-sessions');
-var dotenv = require('dotenv').load();
+//var dotenv = require('dotenv').load();
 
 //mongoose.connect('mongodb://heroku_l51d2vps:2aq0iso1kf2gjkv2b8tb1nm5g8@ds045475.mongolab.com:45475/heroku_l51d2vps', function (err, db)
 mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
