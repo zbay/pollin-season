@@ -7,7 +7,7 @@ module.exports = function(app) {
 app.get("/myPolls", requireLogin, function(req, res){
 		req.session.successMessage = null;
 		req.session.errorMessage = null;
-		pollGetter.getUserPollList(req.session, req.session.sessionID, true, function(){
+		pollGetter.getUserPollList(req.session, req.session.sessionID, true, function(error){
 			res.render("myPolls", {seshName: req.session.sessionName, polls: req.session.myPolls});	
 		});
 });

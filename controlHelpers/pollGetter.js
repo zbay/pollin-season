@@ -27,8 +27,11 @@ var getter = {};
 		         session.visitedUserPolls.push({"id": pollData._id, "name": pollData.title});   
 		        }
 		    });
+		    userPolls.on("error", function(){
+		    	callback("ERROR");
+		    });
 		    userPolls.on("end", function(){
-			    callback();
+			    callback(null);
 		});
          }
             getter.getCommunityPollList = function(session, callback){

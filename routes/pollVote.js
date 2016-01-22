@@ -5,8 +5,13 @@ module.exports = function(app) {
      var requireLogin = require(process.cwd() + "/controlHelpers/requireLogin.js");
 app.get("/polls/:id", requireLogin, function(req, res){
 		Poll.findOne({"_id": req.params.id}).lean().exec(function(err, doc) {
-		var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options, "creatorName": doc.creatorName, "userID": doc.userID};
-		res.render("poll", {seshName: req.session.sessionName, poll: thePoll, pollID: req.params.id, success:req.session.successMessage, error:req.session.errorMessage});
+		 if(doc && !err){
+		     var thePoll = {"_id": doc._id, "pollName": doc.title, "pollOptions": doc.options, "creatorName": doc.creatorName, "userID": doc.userID};
+		    res.render("poll", {seshName: req.session.sessionName, poll: thePoll, pollID: req.params.id, success:req.session.successMessage, error:req.session.errorMessage});
+		 }
+		 else{
+		     res.status(404).render("404", {seshName: req.session.sessionName});
+		 }
 		});
 }); //get poll
 
@@ -15,7 +20,8 @@ var pollID = req.params.id;
 if(req.body.action == "castVote"){
 		var optionID = req.body.incrementID;
 		Poll.update({"_id": pollID, "options._id": optionID}, {$addToSet: {"options.$.votes": req.session.sessionID}}).lean().exec(function(err, doc){
-			req.session.errorMessage=null;
+		    if(doc && !err){
+		        			req.session.errorMessage=null;
 			if(doc.nModified == 0){
 				req.session.successMessage = "Vote removed!";
 				Poll.update({"_id": pollID, "options._id": optionID}, {$pull: {"options.$.votes": req.session.sessionID}}, function(){
@@ -26,6 +32,10 @@ if(req.body.action == "castVote"){
 				req.session.successMessage="Vote cast!";
 				res.redirect("/polls/" + pollID);
 			}
+		    }
+else{
+     res.status(404).render("404", {seshName: req.session.sessionName});
+}
 		});
 }
 else{

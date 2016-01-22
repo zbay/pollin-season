@@ -8,10 +8,16 @@ module.exports = function(app) {
      
      app.get("/users/:id", requireLogin, function(req, res){
 	var userID = req.params.id;
-	pollGetter.getUserPollList(req.session, userID, false, function(){
+	pollGetter.getUserPollList(req.session, userID, false, function(error){
 	    User.findOne({"_id": userID}, function(err, data){
+	        if(data && !err && !error){
 	       res.render("user", {seshName: req.session.sessionName, userPolls:req.session.visitedUserPolls, userName: data.name, success:req.session.successMessage, error: req.session.errorMessage}); 
-	    });
+	        }
+	        else{
+	             res.status(404).render("404", {seshName: req.session.sessionName});
+	        }
+	            
+	        });
 	});
 });
 app.post("/users/:id", requireLogin, function(req, res){
