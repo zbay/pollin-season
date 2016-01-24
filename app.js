@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({
 app.use(session({
   cookieName: 'session',
   //secret: process.env.SESSION_SECRET,
-  secret:"oogity boogity7",
+  secret: SESSION_SECRET,
   duration: 30 * 60 * 1000,
   activeDuration: 5 * 60 * 1000,
 }));
