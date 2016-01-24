@@ -11,7 +11,8 @@ var routes = require('./routes');
 var session = require('client-sessions');
 var dotenv = require('dotenv').load();
 
-mongoose.connect('mongodb://heroku_z630zplx:h58q5vajg7b54ph9q61214f46g@ds041571.mongolab.com:41571/heroku_z630zplx', function (err, db)
+mongoose.connect(process.env.MONGOLAB_URI, function (err, db)
+//mongoose.connect('mongodb://heroku_z630zplx:h58q5vajg7b54ph9q61214f46g@ds041571.mongolab.com:41571/heroku_z630zplx', function (err, db)
 //mongoose.connect('mongodb://localhost:27017/votingapp', function (err, db)
 {
  if (err) {
@@ -27,8 +28,7 @@ app.use(bodyParser.urlencoded({
 
 app.use(session({
   cookieName: 'session',
-  //secret: process.env.SESSION_SECRET,
-  secret: SESSION_SECRET,
+  secret: process.env.SESSION_SECRET,
   duration: 30 * 60 * 1000,
   activeDuration: 5 * 60 * 1000,
 }));
